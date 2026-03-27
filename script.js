@@ -11,8 +11,6 @@ const SKINS = [
 ];
 
 const AI_ICONS = ["🦆", "🐥", "🐤", "🪿", "🐣", "🦆", "🐤", "🪿"];
-
-/* ĐỔI TÊN VỊT Ở ĐÂY */
 const DUCK_NAMES = [
   "Vịt Sấm Sét",
   "Vịt Thần Tốc",
@@ -356,7 +354,7 @@ function createTrack() {
 
     const duck = document.createElement("div");
     duck.className = "duck";
-    duck.style.left = "18px";
+    duck.style.transform = "translateX(18px)";
 
     const playerDuck = i === chosenDuck;
     let icon = playerDuck ? equippedSkin.icon : AI_ICONS[i % AI_ICONS.length];
@@ -409,6 +407,8 @@ function getVisibleFinishPos() {
 }
 
 function getRaceTick() {
+  const mobile = window.innerWidth <= 768;
+  if (mobile) return 1000 / 60;
   return gameData.fpsMode === "120" ? 1000 / 120 : 1000 / 60;
 }
 
@@ -424,8 +424,9 @@ function launchConfetti() {
 
   confettiLayer.innerHTML = "";
   const colors = ["#ff4d6d", "#ffd166", "#06d6a0", "#118ab2", "#8338ec", "#ff9f1c"];
+  const count = window.innerWidth <= 768 ? 16 : 42;
 
-  for (let i = 0; i < 42; i++) {
+  for (let i = 0; i < count; i++) {
     const c = document.createElement("div");
     c.className = "confetti";
     c.style.left = `${Math.random() * 100}%`;
@@ -442,16 +443,17 @@ function launchConfetti() {
 
 function spawnDust(duck) {
   if (!gameData.effectsEnabled) return;
+  if (window.innerWidth <= 768 && Math.random() < 0.7) return;
 
   const dust = document.createElement("div");
   dust.className = "dust";
-  dust.style.left = `${Math.max(0, duck.el.offsetLeft - 8)}px`;
+  dust.style.left = `${Math.max(0, duck.el.offsetLeft)}px`;
   dust.style.top = `${duck.el.offsetTop + 32}px`;
   trackWrap.appendChild(dust);
 
   setTimeout(() => {
     dust.remove();
-  }, 550);
+  }, 380);
 }
 
 function renderHistory() {
@@ -630,11 +632,11 @@ function renderSeasonBoard() {
   ].sort((a, b) => b.points - a.points);
 
   seasonBoard.innerHTML = board.map((item, index) => `
-    <div class="season-item">
-      <strong>#${index + 1} ${item.name}</strong>
-      <span>${item.points} điểm</span>
-    </div>
-  `).join("");
+      <div class="season-item">
+        <strong>#${index + 1} ${item.name}</strong>
+        <span>${item.points} điểm</span>
+      </div>
+    `).join("");
 }
 
 function getRewardByPlace(place) {
@@ -845,9 +847,9 @@ function raceStep() {
     }
 
     const visiblePos = Math.min((duck.pos / finishPos) * visibleFinish, visibleFinish);
-    duck.el.style.left = `${visiblePos}px`;
+    duck.el.style.transform = `translateX(${visiblePos}px)`;
 
-    if (Math.random() < 0.35) {
+    if (Math.random() < (window.innerWidth <= 768 ? 0.08 : 0.22)) {
       spawnDust(duck);
     }
 
@@ -856,15 +858,15 @@ function raceStep() {
       duck.finished = true;
       ranking.push(duck);
       speakBeep(600 + ranking.length * 100, 70, "triangle", 0.025);
-      duck.el.style.left = `${visibleFinish}px`;
+      duck.el.style.transform = `translateX(${visibleFinish}px)`;
     }
   });
 
-  /* CAMERA BÁM THEO VỊT MÌNH CHỌN */
   const playerDuck = ducks.find(d => d.playerDuck);
   if (playerDuck && trackScroll) {
-    const target = Math.max(0, playerDuck.el.offsetLeft - trackScroll.clientWidth * 0.35);
-    trackScroll.scrollLeft += (target - trackScroll.scrollLeft) * 0.12;
+    const visiblePos = Math.min((playerDuck.pos / finishPos) * visibleFinish, visibleFinish);
+    const target = Math.max(0, visiblePos - trackScroll.clientWidth * 0.35);
+    trackScroll.scrollLeft += (target - trackScroll.scrollLeft) * 0.08;
   }
 
   if (ranking.length === ducks.length) {
@@ -902,7 +904,7 @@ function startActualRace() {
   ducks.forEach(d => {
     d.pos = 18;
     d.finished = false;
-    d.el.style.left = "18px";
+    d.el.style.transform = "translateX(18px)";
     d.el.classList.add("running");
     d.el.classList.remove("winner");
   });
@@ -939,9 +941,11 @@ function resetRace() {
   raceRunning = false;
   ranking = [];
   createTrack();
+
   if (trackScroll) {
     trackScroll.scrollLeft = 0;
   }
+
   setStatus("Đã reset đường đua.");
   startRaceBtn.disabled = false;
 }
@@ -1135,7 +1139,7 @@ function init() {
 
     ducks.forEach(duck => {
       const visiblePos = Math.min((duck.pos / finishPos) * visibleFinish, visibleFinish);
-      duck.el.style.left = `${visiblePos}px`;
+      duck.el.style.transform = `translateX(${visiblePos}px)`;
     });
   });
 
