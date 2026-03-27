@@ -137,6 +137,11 @@ let spinCooldown = false;
 let selectedPreviewSkinId = null;
 let bossDuckId = null;
 
+let spinRewardToast = null;
+let spinRewardIcon = null;
+let spinRewardTitle = null;
+let spinRewardText = null;
+
 let gameData = {
   playerName: "Người chơi",
   coins: 1000,
@@ -248,6 +253,90 @@ function rarityClass(rarity) {
   return "";
 }
 
+function ensureSpinRewardPopup() {
+  if (document.getElementById("spinRewardToast")) {
+    spinRewardToast = document.getElementById("spinRewardToast");
+    spinRewardIcon = document.getElementById("spinRewardIcon");
+    spinRewardTitle = document.getElementById("spinRewardTitle");
+    spinRewardText = document.getElementById("spinRewardText");
+    return;
+  }
+
+  const style = document.createElement("style");
+  style.textContent = `
+    .spin-reward-toast {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: grid;
+      place-items: center;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 20px;
+    }
+    .spin-reward-box {
+      width: min(420px, 92vw);
+      background: linear-gradient(135deg, #fff8e7, #ffffff);
+      border: 3px solid #ffd166;
+      border-radius: 24px;
+      padding: 24px 18px;
+      text-align: center;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+      animation: rewardPop 0.35s ease;
+    }
+    .spin-reward-icon {
+      font-size: 64px;
+      margin-bottom: 10px;
+    }
+    .spin-reward-title {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #ff8a00;
+      margin-bottom: 8px;
+    }
+    .spin-reward-text {
+      font-size: 1.05rem;
+      font-weight: bold;
+      color: #203041;
+    }
+    @keyframes rewardPop {
+      0% { transform: scale(0.75); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  `;
+  document.head.appendChild(style);
+
+  const wrapper = document.createElement("div");
+  wrapper.id = "spinRewardToast";
+  wrapper.className = "spin-reward-toast hidden";
+  wrapper.innerHTML = `
+    <div class="spin-reward-box">
+      <div id="spinRewardIcon" class="spin-reward-icon">🎉</div>
+      <div id="spinRewardTitle" class="spin-reward-title">Bạn đã trúng!</div>
+      <div id="spinRewardText" class="spin-reward-text">Phần thưởng</div>
+    </div>
+  `;
+  document.body.appendChild(wrapper);
+
+  spinRewardToast = document.getElementById("spinRewardToast");
+  spinRewardIcon = document.getElementById("spinRewardIcon");
+  spinRewardTitle = document.getElementById("spinRewardTitle");
+  spinRewardText = document.getElementById("spinRewardText");
+}
+
+function showSpinRewardPopup(icon, title, text) {
+  if (!spinRewardToast) return;
+
+  spinRewardIcon.textContent = icon;
+  spinRewardTitle.textContent = title;
+  spinRewardText.textContent = text;
+
+  spinRewardToast.classList.remove("hidden");
+
+  setTimeout(() => {
+    spinRewardToast.classList.add("hidden");
+  }, 2200);
+}
+
 function speakBeep(freq = 500, duration = 100, type = "square", volume = 0.03) {
   try {
     const AC = window.AudioContext || window.webkitAudioContext;
@@ -298,10 +387,10 @@ function updateUI() {
   expText.textContent = `${currentExp} / 100`;
   expFill.style.width = `${currentExp}%`;
 
-  popupWinRateText.textContent = `${winRate}%`;
-  popupWinsText.textContent = gameData.wins;
-  popupLossesText.textContent = gameData.losses;
-  popupProfitText.textContent = gameData.profit >= 0 ? `+${gameData.profit}` : `${gameData.profit}`;
+  if (popupWinRateText) popupWinRateText.textContent = `${winRate}%`;
+  if (popupWinsText) popupWinsText.textContent = gameData.wins;
+  if (popupLossesText) popupLossesText.textContent = gameData.losses;
+  if (popupProfitText) popupProfitText.textContent = gameData.profit >= 0 ? `+${gameData.profit}` : `${gameData.profit}`;
 
   fpsModeSelect.value = gameData.fpsMode;
   speedModeSelect.value = gameData.speedMode;
@@ -928,17 +1017,20 @@ function claimSpinReward(reward) {
     gameData.profit += reward.value;
     rewardMessage = `🎡 Bạn nhận ${reward.value} xu từ vòng quay.`;
     addHistory("🎡 Vòng quay", `Nhận ${reward.value} xu`);
+    showSpinRewardPopup("💰", "Bạn đã trúng!", `${reward.value} xu`);
   } else {
     const skin = getSkinById(reward.value);
     if (!gameData.ownedSkins.includes(skin.id)) {
       gameData.ownedSkins.push(skin.id);
       rewardMessage = `🎡 Bạn quay trúng skin ${skin.name}!`;
       addHistory("🎡 Vòng quay", `Nhận skin ${skin.name}`);
+      showSpinRewardPopup(skin.icon, "Bạn đã trúng vật phẩm!", `${skin.name}`);
     } else {
       gameData.coins += 80;
       gameData.profit += 80;
       rewardMessage = `🎡 Trùng skin ${skin.name}, đổi thành 80 xu.`;
       addHistory("🎡 Vòng quay", `Trùng skin ${skin.name}, đổi thành 80 xu`);
+      showSpinRewardPopup("🔁", "Trùng vật phẩm", `${skin.name} → đổi 80 xu`);
     }
   }
 
@@ -1014,6 +1106,7 @@ function syncControlValuesToSettings() {
 }
 
 function init() {
+  ensureSpinRewardPopup();
   loadGame();
   ensureDailySystems();
 
