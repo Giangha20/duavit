@@ -108,6 +108,7 @@ const previewSkinPrice = document.getElementById("previewSkinPrice");
 const previewBuyBtn = document.getElementById("previewBuyBtn");
 
 const openProfileBtn = document.getElementById("openProfileBtn");
+const openProfileBtnBottom = document.getElementById("openProfileBtnBottom");
 const openRaceBtn = document.getElementById("openRaceBtn");
 const openHistoryBtn = document.getElementById("openHistoryBtn");
 const openQuestBtn = document.getElementById("openQuestBtn");
@@ -329,7 +330,6 @@ function showSpinRewardPopup(icon, title, text) {
   spinRewardIcon.textContent = icon;
   spinRewardTitle.textContent = title;
   spinRewardText.textContent = text;
-
   spinRewardToast.classList.remove("hidden");
 
   setTimeout(() => {
@@ -371,7 +371,7 @@ function playLoseSound() {
 }
 
 function setStatus(message) {
-  statusText.textContent = message;
+  if (statusText) statusText.textContent = message;
 }
 
 function updateUI() {
@@ -379,34 +379,36 @@ function updateUI() {
   const currentExp = getExpCurrent();
   const winRate = gameData.totalRaces === 0 ? 0 : Math.round((gameData.wins / gameData.totalRaces) * 100);
 
-  coinsText.textContent = gameData.coins;
-  levelText.textContent = level;
-  streakText.textContent = gameData.winStreak;
-  playerNameDisplay.textContent = gameData.playerName || "Người chơi";
-  profileLevelText.textContent = level;
-  expText.textContent = `${currentExp} / 100`;
-  expFill.style.width = `${currentExp}%`;
+  if (coinsText) coinsText.textContent = gameData.coins;
+  if (levelText) levelText.textContent = level;
+  if (streakText) streakText.textContent = gameData.winStreak;
+  if (playerNameDisplay) playerNameDisplay.textContent = gameData.playerName || "Người chơi";
+  if (profileLevelText) profileLevelText.textContent = level;
+  if (expText) expText.textContent = `${currentExp} / 100`;
+  if (expFill) expFill.style.width = `${currentExp}%`;
 
   if (popupWinRateText) popupWinRateText.textContent = `${winRate}%`;
   if (popupWinsText) popupWinsText.textContent = gameData.wins;
   if (popupLossesText) popupLossesText.textContent = gameData.losses;
   if (popupProfitText) popupProfitText.textContent = gameData.profit >= 0 ? `+${gameData.profit}` : `${gameData.profit}`;
 
-  fpsModeSelect.value = gameData.fpsMode;
-  speedModeSelect.value = gameData.speedMode;
-  settingsFpsSelect.value = gameData.fpsMode;
-  settingsSpeedSelect.value = gameData.speedMode;
-  bgThemeSelect.value = gameData.bgTheme || "theme-default";
-  effectsToggleBtn.textContent = gameData.effectsEnabled ? "Bật" : "Tắt";
-  shakeToggleBtn.textContent = gameData.shakeEnabled ? "Bật" : "Tắt";
+  if (fpsModeSelect) fpsModeSelect.value = gameData.fpsMode;
+  if (speedModeSelect) speedModeSelect.value = gameData.speedMode;
+  if (settingsFpsSelect) settingsFpsSelect.value = gameData.fpsMode;
+  if (settingsSpeedSelect) settingsSpeedSelect.value = gameData.speedMode;
+  if (bgThemeSelect) bgThemeSelect.value = gameData.bgTheme || "theme-default";
+  if (effectsToggleBtn) effectsToggleBtn.textContent = gameData.effectsEnabled ? "Bật" : "Tắt";
+  if (shakeToggleBtn) shakeToggleBtn.textContent = gameData.shakeEnabled ? "Bật" : "Tắt";
 
-  seasonPointsText.textContent = gameData.seasonPoints;
-  seasonRankText.textContent = getSeasonRank(gameData.seasonPoints);
+  if (seasonPointsText) seasonPointsText.textContent = gameData.seasonPoints;
+  if (seasonRankText) seasonRankText.textContent = getSeasonRank(gameData.seasonPoints);
 
   applyTheme(gameData.bgTheme || "theme-default");
 }
 
 function populateDuckOptions() {
+  if (!betDuckSelect || !duckCountSelect) return;
+
   const count = Number(duckCountSelect.value);
   const oldValue = betDuckSelect.value;
   betDuckSelect.innerHTML = "";
@@ -425,6 +427,8 @@ function populateDuckOptions() {
 }
 
 function createTrack() {
+  if (!trackLanes || !trackWrap || !duckCountSelect || !betDuckSelect) return;
+
   const count = Number(duckCountSelect.value);
   const chosenDuck = Number(betDuckSelect.value || 0);
   const equippedSkin = getSkinById(gameData.equippedSkin);
@@ -435,7 +439,7 @@ function createTrack() {
   trackWrap.style.minHeight = `${count * 82}px`;
 
   bossDuckId = Math.random() < 0.22 ? Math.floor(Math.random() * count) : null;
-  bossBanner.classList.toggle("hidden", bossDuckId === null);
+  if (bossBanner) bossBanner.classList.toggle("hidden", bossDuckId === null);
 
   for (let i = 0; i < count; i++) {
     const lane = document.createElement("div");
@@ -494,7 +498,7 @@ function getFinishPos() {
 }
 
 function getVisibleFinishPos() {
-  return trackWrap.scrollWidth - 130;
+  return trackWrap ? trackWrap.scrollWidth - 130 : 1000;
 }
 
 function getRaceTick() {
@@ -511,7 +515,7 @@ function speedMultiplier() {
 }
 
 function launchConfetti() {
-  if (!gameData.effectsEnabled) return;
+  if (!gameData.effectsEnabled || !confettiLayer) return;
 
   confettiLayer.innerHTML = "";
   const colors = ["#ff4d6d", "#ffd166", "#06d6a0", "#118ab2", "#8338ec", "#ff9f1c"];
@@ -533,7 +537,7 @@ function launchConfetti() {
 }
 
 function spawnDust(duck) {
-  if (!gameData.effectsEnabled) return;
+  if (!gameData.effectsEnabled || !trackWrap) return;
   if (window.innerWidth <= 768 && Math.random() < 0.7) return;
 
   const dust = document.createElement("div");
@@ -546,6 +550,8 @@ function spawnDust(duck) {
 }
 
 function renderHistory() {
+  if (!historyList) return;
+
   if (!gameData.history.length) {
     historyList.innerHTML = `<div class="history-item">Chưa có hoạt động nào</div>`;
     return;
@@ -568,6 +574,8 @@ function addHistory(title, desc) {
 }
 
 function renderQuests() {
+  if (!questsList) return;
+
   questsList.innerHTML = gameData.dailyQuests.map(q => {
     const percent = Math.min(100, Math.round((q.progress / q.goal) * 100));
     return `
@@ -611,6 +619,8 @@ function incrementQuest(id, amount = 1) {
 }
 
 function renderShop() {
+  if (!shopGrid) return;
+
   const skins = SKINS.filter(s => s.from === "shop");
   shopGrid.innerHTML = skins.map(skin => {
     const owned = gameData.ownedSkins.includes(skin.id);
@@ -630,6 +640,8 @@ function renderShop() {
 }
 
 function renderInventory() {
+  if (!inventoryGrid) return;
+
   const skins = SKINS.filter(s => gameData.ownedSkins.includes(s.id));
   inventoryGrid.innerHTML = skins.map(skin => {
     const equipped = gameData.equippedSkin === skin.id;
@@ -649,12 +661,14 @@ function renderInventory() {
 window.previewSkin = function (skinId) {
   const skin = getSkinById(skinId);
   selectedPreviewSkinId = skinId;
-  previewSkinIcon.textContent = skin.icon;
-  previewSkinName.textContent = skin.name;
-  previewSkinRarity.textContent = rarityLabel(skin.rarity);
-  previewSkinPrice.textContent = skin.price ? `${skin.price} xu` : "Skin đặc biệt";
-  previewBuyBtn.disabled = gameData.ownedSkins.includes(skin.id);
-  previewBuyBtn.textContent = gameData.ownedSkins.includes(skin.id) ? "Đã sở hữu" : "🛍️ Mua ngay";
+  if (previewSkinIcon) previewSkinIcon.textContent = skin.icon;
+  if (previewSkinName) previewSkinName.textContent = skin.name;
+  if (previewSkinRarity) previewSkinRarity.textContent = rarityLabel(skin.rarity);
+  if (previewSkinPrice) previewSkinPrice.textContent = skin.price ? `${skin.price} xu` : "Skin đặc biệt";
+  if (previewBuyBtn) {
+    previewBuyBtn.disabled = gameData.ownedSkins.includes(skin.id);
+    previewBuyBtn.textContent = gameData.ownedSkins.includes(skin.id) ? "Đã sở hữu" : "🛍️ Mua ngay";
+  }
   openModal("previewModal");
 };
 
@@ -691,6 +705,8 @@ window.equipSkin = function (skinId) {
 };
 
 function renderAchievements() {
+  if (!achievementsGrid) return;
+
   achievementsGrid.innerHTML = ACHIEVEMENTS.map(a => {
     const unlocked = a.check(gameData);
     return `
@@ -703,6 +719,8 @@ function renderAchievements() {
 }
 
 function renderSeasonBoard() {
+  if (!seasonBoard) return;
+
   const playerPoints = gameData.seasonPoints;
   const playerName = gameData.playerName || "Bạn";
 
@@ -737,31 +755,37 @@ function getSeasonPointsByPlace(place, bossDefeated) {
 }
 
 function openModal(id) {
-  document.getElementById(id).classList.remove("hidden");
+  const el = document.getElementById(id);
+  if (el) el.classList.remove("hidden");
 }
 
 function closeModal(id) {
-  document.getElementById(id).classList.add("hidden");
+  const el = document.getElementById(id);
+  if (el) el.classList.add("hidden");
 }
 
 function showRacePanel() {
+  if (!raceSection) return;
   raceSection.classList.remove("hidden-panel");
   raceSection.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function hideRacePanel() {
+  if (!raceSection) return;
   raceSection.classList.add("hidden-panel");
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function showResultModal(playerPlace, reward) {
-  resultTitle.textContent = `Vịt bạn chọn về hạng ${playerPlace}!`;
-  resultReward.textContent = `+${reward} xu`;
-  resultRanking.innerHTML = ranking.map((duck) => {
-    const mark = duck.playerDuck ? "⭐ " : "";
-    const boss = duck.isBoss ? "👑 " : "";
-    return `<li>${mark}${boss}${duck.icon} ${duck.name}</li>`;
-  }).join("");
+  if (resultTitle) resultTitle.textContent = `Vịt bạn chọn về hạng ${playerPlace}!`;
+  if (resultReward) resultReward.textContent = `+${reward} xu`;
+  if (resultRanking) {
+    resultRanking.innerHTML = ranking.map((duck) => {
+      const mark = duck.playerDuck ? "⭐ " : "";
+      const boss = duck.isBoss ? "👑 " : "";
+      return `<li>${mark}${boss}${duck.icon} ${duck.name}</li>`;
+    }).join("");
+  }
   openModal("resultModal");
 }
 
@@ -793,7 +817,7 @@ function resetAllData() {
   };
 
   ensureDailySystems();
-  playerNameInput.value = "";
+  if (playerNameInput) playerNameInput.value = "";
   updateUI();
   renderHistory();
   renderQuests();
@@ -807,6 +831,11 @@ function resetAllData() {
 }
 
 function countdownSequence(callback) {
+  if (!countdownOverlay) {
+    callback();
+    return;
+  }
+
   const steps = ["3", "2", "1", "GO!"];
   let i = 0;
 
@@ -814,7 +843,7 @@ function countdownSequence(callback) {
 
   function next() {
     countdownOverlay.textContent = steps[i];
-    if (gameData.shakeEnabled && i < 3) {
+    if (gameData.shakeEnabled && i < 3 && trackWrap) {
       trackWrap.classList.remove("shake");
       void trackWrap.offsetWidth;
       trackWrap.classList.add("shake");
@@ -841,7 +870,7 @@ function finishRace() {
 
   ducks.forEach(d => d.el.classList.remove("running", "boosted"));
 
-  const playerDuckId = Number(betDuckSelect.value);
+  const playerDuckId = Number(betDuckSelect?.value || 0);
   const playerPlace = ranking.findIndex(d => d.id === playerDuckId) + 1 || ducks.length;
   const reward = getRewardByPlace(playerPlace);
   const winner = ranking[0];
@@ -889,8 +918,8 @@ function finishRace() {
   showResultModal(playerPlace, reward);
   saveGame();
 
-  startRaceBtn.disabled = false;
-  resetRaceBtn.disabled = false;
+  if (startRaceBtn) startRaceBtn.disabled = false;
+  if (resetRaceBtn) resetRaceBtn.disabled = false;
 }
 
 function raceStep() {
@@ -981,17 +1010,17 @@ function startActualRace() {
 function startRace() {
   if (raceRunning) return;
 
-  gameData.playerName = playerNameInput.value.trim() || "Người chơi";
-  playerNameDisplay.textContent = gameData.playerName || "Người chơi";
+  gameData.playerName = (playerNameInput?.value || "").trim() || "Người chơi";
+  if (playerNameDisplay) playerNameDisplay.textContent = gameData.playerName || "Người chơi";
   createTrack();
 
-  startRaceBtn.disabled = true;
-  resetRaceBtn.disabled = true;
+  if (startRaceBtn) startRaceBtn.disabled = true;
+  if (resetRaceBtn) resetRaceBtn.disabled = true;
 
   countdownSequence(() => {
     startActualRace();
-    startRaceBtn.disabled = true;
-    resetRaceBtn.disabled = false;
+    if (startRaceBtn) startRaceBtn.disabled = true;
+    if (resetRaceBtn) resetRaceBtn.disabled = false;
   });
 
   saveGame();
@@ -1006,7 +1035,7 @@ function resetRace() {
   if (trackScroll) trackScroll.scrollLeft = 0;
 
   setStatus("Đã reset đường đua.");
-  startRaceBtn.disabled = false;
+  if (startRaceBtn) startRaceBtn.disabled = false;
 }
 
 function claimSpinReward(reward) {
@@ -1051,7 +1080,7 @@ function claimSpinReward(reward) {
 }
 
 function spinWheel() {
-  if (raceRunning || spinCooldown) return;
+  if (raceRunning || spinCooldown || !spinOnceBtn || !wheelCore) return;
 
   spinCooldown = true;
   spinOnceBtn.disabled = true;
@@ -1076,11 +1105,13 @@ function spinWheel() {
 }
 
 function saveSettings() {
-  gameData.fpsMode = settingsFpsSelect.value;
-  gameData.speedMode = settingsSpeedSelect.value;
-  gameData.bgTheme = bgThemeSelect.value;
-  fpsModeSelect.value = gameData.fpsMode;
-  speedModeSelect.value = gameData.speedMode;
+  if (settingsFpsSelect) gameData.fpsMode = settingsFpsSelect.value;
+  if (settingsSpeedSelect) gameData.speedMode = settingsSpeedSelect.value;
+  if (bgThemeSelect) gameData.bgTheme = bgThemeSelect.value;
+
+  if (fpsModeSelect) fpsModeSelect.value = gameData.fpsMode;
+  if (speedModeSelect) speedModeSelect.value = gameData.speedMode;
+
   applyTheme(gameData.bgTheme);
   saveGame();
   setStatus("⚙️ Đã lưu cài đặt game.");
@@ -1100,9 +1131,9 @@ function bindModalButtons() {
 }
 
 function syncControlValuesToSettings() {
-  settingsFpsSelect.value = fpsModeSelect.value;
-  settingsSpeedSelect.value = speedModeSelect.value;
-  bgThemeSelect.value = gameData.bgTheme || "theme-default";
+  if (settingsFpsSelect && fpsModeSelect) settingsFpsSelect.value = fpsModeSelect.value;
+  if (settingsSpeedSelect && speedModeSelect) settingsSpeedSelect.value = speedModeSelect.value;
+  if (bgThemeSelect) bgThemeSelect.value = gameData.bgTheme || "theme-default";
 }
 
 function init() {
@@ -1110,9 +1141,11 @@ function init() {
   loadGame();
   ensureDailySystems();
 
-  playerNameInput.value = gameData.playerName && gameData.playerName !== "Người chơi"
-    ? gameData.playerName
-    : "";
+  if (playerNameInput) {
+    playerNameInput.value = gameData.playerName && gameData.playerName !== "Người chơi"
+      ? gameData.playerName
+      : "";
+  }
 
   updateUI();
   renderHistory();
@@ -1123,99 +1156,99 @@ function init() {
   renderSeasonBoard();
   bindModalButtons();
 
-  duckCountSelect.value = "4";
+  if (duckCountSelect) duckCountSelect.value = "4";
   populateDuckOptions();
   createTrack();
 
-  openProfileBtn.addEventListener("click", () => openModal("profileModal"));
-  openRaceBtn.addEventListener("click", showRacePanel);
-  backHomeBtn.addEventListener("click", hideRacePanel);
+  openProfileBtn?.addEventListener("click", () => openModal("profileModal"));
+  openProfileBtnBottom?.addEventListener("click", () => openModal("profileModal"));
 
-  openHistoryBtn.addEventListener("click", () => {
+  openRaceBtn?.addEventListener("click", showRacePanel);
+  backHomeBtn?.addEventListener("click", hideRacePanel);
+
+  openHistoryBtn?.addEventListener("click", () => {
     renderHistory();
     openModal("historyModal");
   });
 
-  openQuestBtn.addEventListener("click", () => {
+  openQuestBtn?.addEventListener("click", () => {
     renderQuests();
     openModal("questModal");
   });
 
-  openShopBtn.addEventListener("click", () => {
+  openShopBtn?.addEventListener("click", () => {
     renderShop();
     openModal("shopModal");
   });
 
-  openInventoryBtn.addEventListener("click", () => {
+  openInventoryBtn?.addEventListener("click", () => {
     renderInventory();
     openModal("inventoryModal");
   });
 
-  openSpinBtn.addEventListener("click", () => openModal("spinModal"));
+  openSpinBtn?.addEventListener("click", () => openModal("spinModal"));
 
-  if (openAchievementsBtn) {
-    openAchievementsBtn.addEventListener("click", () => {
-      renderAchievements();
-      openModal("achievementsModal");
-    });
-  }
+  openAchievementsBtn?.addEventListener("click", () => {
+    renderAchievements();
+    openModal("achievementsModal");
+  });
 
-  openSeasonBtn.addEventListener("click", () => {
+  openSeasonBtn?.addEventListener("click", () => {
     renderSeasonBoard();
     openModal("seasonModal");
   });
 
-  openSettingsBtn.addEventListener("click", () => {
+  openSettingsBtn?.addEventListener("click", () => {
     syncControlValuesToSettings();
     openModal("settingsModal");
   });
 
-  playerNameInput.addEventListener("input", () => {
+  playerNameInput?.addEventListener("input", () => {
     gameData.playerName = playerNameInput.value;
-    playerNameDisplay.textContent = gameData.playerName || "Người chơi";
+    if (playerNameDisplay) playerNameDisplay.textContent = gameData.playerName || "Người chơi";
     saveGame();
   });
 
-  duckCountSelect.addEventListener("change", () => {
+  duckCountSelect?.addEventListener("change", () => {
     populateDuckOptions();
     createTrack();
   });
 
-  betDuckSelect.addEventListener("change", createTrack);
+  betDuckSelect?.addEventListener("change", createTrack);
 
-  fpsModeSelect.addEventListener("change", () => {
+  fpsModeSelect?.addEventListener("change", () => {
     gameData.fpsMode = fpsModeSelect.value;
-    settingsFpsSelect.value = gameData.fpsMode;
+    if (settingsFpsSelect) settingsFpsSelect.value = gameData.fpsMode;
     saveGame();
     setStatus(`⚙️ Đã chuyển sang ${gameData.fpsMode} FPS.`);
   });
 
-  speedModeSelect.addEventListener("change", () => {
+  speedModeSelect?.addEventListener("change", () => {
     gameData.speedMode = speedModeSelect.value;
-    settingsSpeedSelect.value = gameData.speedMode;
+    if (settingsSpeedSelect) settingsSpeedSelect.value = gameData.speedMode;
     saveGame();
     setStatus(`⚙️ Tốc độ đua: ${gameData.speedMode}.`);
   });
 
-  effectsToggleBtn.addEventListener("click", () => {
+  effectsToggleBtn?.addEventListener("click", () => {
     gameData.effectsEnabled = !gameData.effectsEnabled;
     effectsToggleBtn.textContent = gameData.effectsEnabled ? "Bật" : "Tắt";
     saveGame();
   });
 
-  shakeToggleBtn.addEventListener("click", () => {
+  shakeToggleBtn?.addEventListener("click", () => {
     gameData.shakeEnabled = !gameData.shakeEnabled;
     shakeToggleBtn.textContent = gameData.shakeEnabled ? "Bật" : "Tắt";
     saveGame();
   });
 
-  startRaceBtn.addEventListener("click", startRace);
-  resetRaceBtn.addEventListener("click", resetRace);
-  spinOnceBtn.addEventListener("click", spinWheel);
-  saveSettingsBtn.addEventListener("click", saveSettings);
-  resetDataBtn.addEventListener("click", resetAllData);
+  startRaceBtn?.addEventListener("click", startRace);
+  resetRaceBtn?.addEventListener("click", resetRace);
+  spinOnceBtn?.addEventListener("click", spinWheel);
+  saveSettingsBtn?.addEventListener("click", saveSettings);
+  resetDataBtn?.addEventListener("click", resetAllData);
 
-  previewBuyBtn.addEventListener("click", () => {
+  previewBuyBtn?.addEventListener("click", () => {
     if (selectedPreviewSkinId) {
       window.buySkin(selectedPreviewSkinId);
       window.previewSkin(selectedPreviewSkinId);
