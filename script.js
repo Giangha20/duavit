@@ -1,0 +1,1096 @@
+const SKINS = [
+  { id: "classic", name: "Classic", icon: "🦆", price: 0, rarity: "common", from: "default" },
+  { id: "baby", name: "Baby", icon: "🐥", price: 120, rarity: "common", from: "shop" },
+  { id: "chick", name: "Chick", icon: "🐤", price: 150, rarity: "common", from: "shop" },
+  { id: "goose", name: "Goose", icon: "🪿", price: 220, rarity: "rare", from: "shop" },
+  { id: "egg", name: "Egg Duck", icon: "🐣", price: 260, rarity: "rare", from: "shop" },
+  { id: "flame", name: "Flame", icon: "🔥🦆", price: 0, rarity: "epic", from: "spin" },
+  { id: "royal", name: "Royal", icon: "👑🦆", price: 0, rarity: "epic", from: "spin" },
+  { id: "rainbow", name: "Rainbow", icon: "🌈🦆", price: 0, rarity: "legendary", from: "spin" },
+  { id: "legend", name: "Vật phẩm hiếm", icon: "✨🦆", price: 0, rarity: "legendary", from: "spin" }
+];
+
+const AI_ICONS = ["🦆", "🐥", "🐤", "🪿", "🐣", "🦆", "🐤", "🪿"];
+const SEASON_RANKS = [
+  { min: 0, name: "Đồng" },
+  { min: 300, name: "Bạc" },
+  { min: 700, name: "Vàng" },
+  { min: 1200, name: "Bạch Kim" },
+  { min: 1800, name: "Kim Cương" }
+];
+
+const DAILY_QUESTS_TEMPLATE = [
+  { id: "play3", title: "Chơi 3 trận", goal: 3, reward: 120, progress: 0, claimed: false },
+  { id: "spin1", title: "Quay 1 lần", goal: 1, reward: 80, progress: 0, claimed: false },
+  { id: "win1", title: "Top 1 một trận", goal: 1, reward: 150, progress: 0, claimed: false }
+];
+
+const ACHIEVEMENTS = [
+  { id: "firstRace", title: "Khởi đầu", desc: "Chơi 1 trận", check: d => d.totalRaces >= 1 },
+  { id: "fiveWins", title: "Tay đua xịn", desc: "Đạt 5 lần top 1", check: d => d.wins >= 5 },
+  { id: "rich", title: "Đại gia vịt", desc: "Có 3000 xu", check: d => d.coins >= 3000 },
+  { id: "collector", title: "Nhà sưu tập", desc: "Sở hữu 5 skin", check: d => d.ownedSkins.length >= 5 },
+  { id: "streak3", title: "Chuỗi mạnh", desc: "Chuỗi thắng đạt 3", check: d => d.bestStreak >= 3 }
+];
+
+const SPIN_REWARDS = [
+  { type: "coins", value: 30, label: "30 xu" },
+  { type: "coins", value: 50, label: "50 xu" },
+  { type: "skin", value: "royal", label: "Skin Royal" },
+  { type: "skin", value: "flame", label: "Skin Flame" },
+  { type: "skin", value: "rainbow", label: "Skin Rainbow" },
+  { type: "skin", value: "legend", label: "Vật phẩm hiếm" }
+];
+
+const playerNameInput = document.getElementById("playerNameInput");
+const duckCountSelect = document.getElementById("duckCountSelect");
+const betDuckSelect = document.getElementById("betDuckSelect");
+const speedModeSelect = document.getElementById("speedModeSelect");
+const fpsModeSelect = document.getElementById("fpsModeSelect");
+
+const settingsFpsSelect = document.getElementById("settingsFpsSelect");
+const settingsSpeedSelect = document.getElementById("settingsSpeedSelect");
+const effectsToggleBtn = document.getElementById("effectsToggleBtn");
+const shakeToggleBtn = document.getElementById("shakeToggleBtn");
+
+const coinsText = document.getElementById("coinsText");
+const levelText = document.getElementById("levelText");
+const streakText = document.getElementById("streakText");
+const playerNameDisplay = document.getElementById("playerNameDisplay");
+const profileLevelText = document.getElementById("profileLevelText");
+const expText = document.getElementById("expText");
+const expFill = document.getElementById("expFill");
+const totalRacesText = document.getElementById("totalRacesText");
+const winRateText = document.getElementById("winRateText");
+const winsText = document.getElementById("winsText");
+const lossesText = document.getElementById("lossesText");
+const profitText = document.getElementById("profitText");
+const statusText = document.getElementById("statusText");
+
+const trackLanes = document.getElementById("trackLanes");
+const trackWrap = document.getElementById("trackWrap");
+const confettiLayer = document.getElementById("confettiLayer");
+const countdownOverlay = document.getElementById("countdownOverlay");
+const bossBanner = document.getElementById("bossBanner");
+
+const questsList = document.getElementById("questsList");
+const historyList = document.getElementById("historyList");
+const shopGrid = document.getElementById("shopGrid");
+const inventoryGrid = document.getElementById("inventoryGrid");
+const achievementsGrid = document.getElementById("achievementsGrid");
+const seasonBoard = document.getElementById("seasonBoard");
+const seasonPointsText = document.getElementById("seasonPointsText");
+const seasonRankText = document.getElementById("seasonRankText");
+
+const resultTitle = document.getElementById("resultTitle");
+const resultReward = document.getElementById("resultReward");
+const resultRanking = document.getElementById("resultRanking");
+
+const wheelCore = document.getElementById("wheelCore");
+
+const previewSkinIcon = document.getElementById("previewSkinIcon");
+const previewSkinName = document.getElementById("previewSkinName");
+const previewSkinRarity = document.getElementById("previewSkinRarity");
+const previewSkinPrice = document.getElementById("previewSkinPrice");
+const previewBuyBtn = document.getElementById("previewBuyBtn");
+
+const openRaceBtn = document.getElementById("openRaceBtn");
+const openShopBtn = document.getElementById("openShopBtn");
+const openInventoryBtn = document.getElementById("openInventoryBtn");
+const openSpinBtn = document.getElementById("openSpinBtn");
+const openAchievementsBtn = document.getElementById("openAchievementsBtn");
+const openSeasonBtn = document.getElementById("openSeasonBtn");
+const openSettingsBtn = document.getElementById("openSettingsBtn");
+const claimDailyBtn = document.getElementById("claimDailyBtn");
+const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+
+const startRaceBtn = document.getElementById("startRaceBtn");
+const resetRaceBtn = document.getElementById("resetRaceBtn");
+const spinOnceBtn = document.getElementById("spinOnceBtn");
+const saveSettingsBtn = document.getElementById("saveSettingsBtn");
+const resetDataBtn = document.getElementById("resetDataBtn");
+
+const heroActions = document.getElementById("heroActions");
+
+let ducks = [];
+let ranking = [];
+let raceRunning = false;
+let animationId = null;
+let lastFrameTime = 0;
+let accumulator = 0;
+let spinCooldown = false;
+let selectedPreviewSkinId = null;
+let bossDuckId = null;
+
+let gameData = {
+  playerName: "Người chơi",
+  coins: 1000,
+  exp: 0,
+  totalRaces: 0,
+  wins: 0,
+  losses: 0,
+  winStreak: 0,
+  bestStreak: 0,
+  profit: 0,
+  ownedSkins: ["classic"],
+  equippedSkin: "classic",
+  history: [],
+  fpsMode: "60",
+  speedMode: "normal",
+  effectsEnabled: true,
+  shakeEnabled: true,
+  dailyClaimDate: "",
+  questsDate: "",
+  dailyQuests: [],
+  spinCount: 0,
+  seasonPoints: 0
+};
+
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
+
+function saveGame() {
+  localStorage.setItem("duckRaceDeluxeV2Data", JSON.stringify(gameData));
+}
+
+function loadGame() {
+  const raw = localStorage.getItem("duckRaceDeluxeV2Data");
+  if (!raw) return;
+
+  try {
+    const parsed = JSON.parse(raw);
+    gameData = {
+      ...gameData,
+      ...parsed,
+      ownedSkins: Array.isArray(parsed.ownedSkins) && parsed.ownedSkins.length ? parsed.ownedSkins : ["classic"],
+      history: Array.isArray(parsed.history) ? parsed.history : [],
+      dailyQuests: Array.isArray(parsed.dailyQuests) ? parsed.dailyQuests : []
+    };
+  } catch (err) {
+    console.log("Lỗi load save:", err);
+  }
+}
+
+function ensureDailySystems() {
+  const today = todayKey();
+  if (gameData.questsDate !== today || !gameData.dailyQuests.length) {
+    gameData.questsDate = today;
+    gameData.dailyQuests = JSON.parse(JSON.stringify(DAILY_QUESTS_TEMPLATE));
+  }
+}
+
+function getLevel() {
+  return Math.floor(gameData.exp / 100) + 1;
+}
+
+function getExpCurrent() {
+  return gameData.exp % 100;
+}
+
+function getSeasonRank(points) {
+  let rank = SEASON_RANKS[0].name;
+  for (const item of SEASON_RANKS) {
+    if (points >= item.min) rank = item.name;
+  }
+  return rank;
+}
+
+function addExp(amount) {
+  const before = getLevel();
+  gameData.exp += amount;
+  const after = getLevel();
+
+  if (after > before) {
+    const reward = (after - before) * 100;
+    gameData.coins += reward;
+    setStatus(`🎉 Lên level ${after}! Bạn nhận ${reward} xu.`);
+  }
+}
+
+function getSkinById(id) {
+  return SKINS.find(s => s.id === id) || SKINS[0];
+}
+
+function rarityLabel(rarity) {
+  if (rarity === "rare") return "Hiếm";
+  if (rarity === "epic") return "Sử thi";
+  if (rarity === "legendary") return "Huyền thoại";
+  return "Thường";
+}
+
+function rarityClass(rarity) {
+  if (rarity === "legendary") return "legendary";
+  if (rarity === "epic") return "epic";
+  if (rarity === "rare") return "rare";
+  return "";
+}
+
+function speakBeep(freq = 500, duration = 100, type = "square", volume = 0.03) {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    const ctx = new AC();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.value = volume;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    setTimeout(() => {
+      osc.stop();
+      ctx.close();
+    }, duration);
+  } catch (e) {
+    console.log("Audio lỗi:", e);
+  }
+}
+
+function playWinSound() {
+  speakBeep(700, 120, "triangle", 0.04);
+  setTimeout(() => speakBeep(900, 140, "triangle", 0.04), 140);
+  setTimeout(() => speakBeep(1100, 180, "triangle", 0.04), 300);
+}
+
+function playLoseSound() {
+  speakBeep(320, 160, "sawtooth", 0.03);
+  setTimeout(() => speakBeep(240, 220, "sawtooth", 0.03), 170);
+}
+
+function setStatus(message) {
+  statusText.textContent = message;
+}
+
+function updateUI() {
+  const level = getLevel();
+  const currentExp = getExpCurrent();
+
+  coinsText.textContent = gameData.coins;
+  levelText.textContent = level;
+  streakText.textContent = gameData.winStreak;
+  playerNameDisplay.textContent = gameData.playerName || "Người chơi";
+  profileLevelText.textContent = level;
+  expText.textContent = `${currentExp} / 100`;
+  expFill.style.width = `${currentExp}%`;
+  totalRacesText.textContent = gameData.totalRaces;
+  winsText.textContent = gameData.wins;
+  lossesText.textContent = gameData.losses;
+  profitText.textContent = gameData.profit >= 0 ? `+${gameData.profit}` : `${gameData.profit}`;
+
+  const winRate = gameData.totalRaces === 0 ? 0 : Math.round((gameData.wins / gameData.totalRaces) * 100);
+  winRateText.textContent = `${winRate}%`;
+
+  playerNameInput.value = gameData.playerName || "Người chơi";
+  fpsModeSelect.value = gameData.fpsMode;
+  speedModeSelect.value = gameData.speedMode;
+  settingsFpsSelect.value = gameData.fpsMode;
+  settingsSpeedSelect.value = gameData.speedMode;
+  effectsToggleBtn.textContent = gameData.effectsEnabled ? "Bật" : "Tắt";
+  shakeToggleBtn.textContent = gameData.shakeEnabled ? "Bật" : "Tắt";
+
+  seasonPointsText.textContent = gameData.seasonPoints;
+  seasonRankText.textContent = getSeasonRank(gameData.seasonPoints);
+}
+
+function populateDuckOptions() {
+  const count = Number(duckCountSelect.value);
+  const oldValue = betDuckSelect.value;
+  betDuckSelect.innerHTML = "";
+
+  for (let i = 0; i < count; i++) {
+    const option = document.createElement("option");
+    option.value = i;
+    option.textContent = `Vịt ${i + 1}`;
+    betDuckSelect.appendChild(option);
+  }
+
+  if (oldValue && Number(oldValue) < count) {
+    betDuckSelect.value = oldValue;
+  }
+}
+
+function createTrack() {
+  const count = Number(duckCountSelect.value);
+  const chosenDuck = Number(betDuckSelect.value || 0);
+  const equippedSkin = getSkinById(gameData.equippedSkin);
+
+  ducks = [];
+  ranking = [];
+  trackLanes.innerHTML = "";
+  trackWrap.style.minHeight = `${count * 82}px`;
+
+  bossDuckId = Math.random() < 0.22 ? Math.floor(Math.random() * count) : null;
+  if (bossDuckId !== null) {
+    bossBanner.classList.remove("hidden");
+  } else {
+    bossBanner.classList.add("hidden");
+  }
+
+  for (let i = 0; i < count; i++) {
+    const lane = document.createElement("div");
+    lane.className = "lane";
+
+    const label = document.createElement("div");
+    label.className = "lane-label";
+    label.textContent = i === bossDuckId ? `Vịt ${i + 1} 👑 Boss` : `Vịt ${i + 1}`;
+
+    const duck = document.createElement("div");
+    duck.className = "duck";
+    duck.style.left = "18px";
+
+    const playerDuck = i === chosenDuck;
+    let icon = playerDuck ? equippedSkin.icon : AI_ICONS[i % AI_ICONS.length];
+    if (i === bossDuckId) {
+      icon = "👑🦆";
+    }
+
+    duck.textContent = icon;
+
+    if (playerDuck && (equippedSkin.rarity === "epic" || equippedSkin.rarity === "legendary")) {
+      duck.classList.add("rare");
+    }
+
+    if (i === bossDuckId) {
+      duck.classList.add("rare");
+    }
+
+    lane.appendChild(label);
+    lane.appendChild(duck);
+    trackLanes.appendChild(lane);
+
+    const basePower = 0.9 + Math.random() * 0.35;
+    const sprintChance = 0.10 + Math.random() * 0.14;
+    const sprintPower = 1.8 + Math.random() * 2.5;
+    const stability = 0.85 + Math.random() * 0.4;
+
+    ducks.push({
+      id: i,
+      name: `Vịt ${i + 1}`,
+      icon,
+      el: duck,
+      pos: 18,
+      finished: false,
+      playerDuck,
+      isBoss: i === bossDuckId,
+      basePower: i === bossDuckId ? basePower + 0.12 : basePower,
+      sprintChance: i === bossDuckId ? sprintChance + 0.03 : sprintChance,
+      sprintPower: i === bossDuckId ? sprintPower + 0.5 : sprintPower,
+      stability: i === bossDuckId ? stability + 0.08 : stability
+    });
+  }
+}
+
+function getFinishPos() {
+  return trackWrap.clientWidth - 130;
+}
+
+function getRaceTick() {
+  return gameData.fpsMode === "120" ? 1000 / 120 : 1000 / 60;
+}
+
+function speedMultiplier() {
+  if (gameData.speedMode === "fast") return 1.25;
+  if (gameData.speedMode === "crazy") return 1.6;
+  return 1;
+}
+
+function launchConfetti() {
+  if (!gameData.effectsEnabled) return;
+
+  confettiLayer.innerHTML = "";
+  const colors = ["#ff4d6d", "#ffd166", "#06d6a0", "#118ab2", "#8338ec", "#ff9f1c"];
+
+  for (let i = 0; i < 42; i++) {
+    const c = document.createElement("div");
+    c.className = "confetti";
+    c.style.left = `${Math.random() * 100}%`;
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    c.style.animationDelay = `${Math.random() * 0.45}s`;
+    c.style.transform = `rotate(${Math.random() * 360}deg)`;
+    confettiLayer.appendChild(c);
+  }
+
+  setTimeout(() => {
+    confettiLayer.innerHTML = "";
+  }, 3200);
+}
+
+function spawnDust(duck) {
+  if (!gameData.effectsEnabled) return;
+
+  const dust = document.createElement("div");
+  dust.className = "dust";
+  dust.style.left = `${Math.max(0, duck.pos - 8)}px`;
+  dust.style.top = `${duck.el.offsetTop + 32}px`;
+  trackWrap.appendChild(dust);
+
+  setTimeout(() => {
+    dust.remove();
+  }, 550);
+}
+
+function renderHistory() {
+  if (!gameData.history.length) {
+    historyList.innerHTML = `<div class="history-item">Chưa có hoạt động nào</div>`;
+    return;
+  }
+
+  historyList.innerHTML = gameData.history.slice(0, 8).map(item => `
+    <div class="history-item">
+      <strong>${item.title}</strong>
+      <div class="muted">${item.desc}</div>
+    </div>
+  `).join("");
+}
+
+function addHistory(title, desc) {
+  gameData.history.unshift({ title, desc, time: Date.now() });
+  if (gameData.history.length > 25) {
+    gameData.history = gameData.history.slice(0, 25);
+  }
+  renderHistory();
+}
+
+function renderQuests() {
+  questsList.innerHTML = gameData.dailyQuests.map(q => {
+    const percent = Math.min(100, Math.round((q.progress / q.goal) * 100));
+    return `
+      <div class="quest-item">
+        <div class="quest-top">
+          <strong>${q.title}</strong>
+          <span>${q.progress}/${q.goal}</span>
+        </div>
+        <div class="progress-mini">
+          <div class="progress-mini-fill" style="width:${percent}%"></div>
+        </div>
+        <button class="card-btn ${q.claimed || q.progress < q.goal ? "gray" : ""}" 
+          ${q.claimed || q.progress < q.goal ? "disabled" : ""}
+          onclick="claimQuestReward('${q.id}')">
+          ${q.claimed ? "Đã nhận" : `Nhận ${q.reward} xu`}
+        </button>
+      </div>
+    `;
+  }).join("");
+}
+
+window.claimQuestReward = function (id) {
+  const quest = gameData.dailyQuests.find(q => q.id === id);
+  if (!quest || quest.claimed || quest.progress < quest.goal) return;
+
+  quest.claimed = true;
+  gameData.coins += quest.reward;
+  gameData.profit += quest.reward;
+  addHistory("🎁 Nhiệm vụ ngày", `Nhận ${quest.reward} xu từ nhiệm vụ "${quest.title}"`);
+  setStatus(`✅ Đã nhận ${quest.reward} xu từ nhiệm vụ ngày.`);
+  speakBeep(820, 120, "triangle", 0.04);
+  updateUI();
+  renderQuests();
+  saveGame();
+};
+
+function incrementQuest(id, amount = 1) {
+  const quest = gameData.dailyQuests.find(q => q.id === id);
+  if (!quest || quest.claimed) return;
+  quest.progress = Math.min(quest.goal, quest.progress + amount);
+}
+
+function renderShop() {
+  const skins = SKINS.filter(s => s.from === "shop");
+
+  shopGrid.innerHTML = skins.map(skin => {
+    const owned = gameData.ownedSkins.includes(skin.id);
+    return `
+      <div class="shop-item ${rarityClass(skin.rarity)}">
+        <div class="skin-icon">${skin.icon}</div>
+        <div class="skin-name">${skin.name}</div>
+        <div class="skin-rarity">${rarityLabel(skin.rarity)}</div>
+        <div class="skin-price">${skin.price} xu</div>
+        <button class="card-btn preview" onclick="previewSkin('${skin.id}')">👀 Xem trước</button>
+        <button class="card-btn ${owned ? "gray" : ""}" ${owned ? "disabled" : ""} onclick="buySkin('${skin.id}')">
+          ${owned ? "Đã sở hữu" : "Mua skin"}
+        </button>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderInventory() {
+  const skins = SKINS.filter(s => gameData.ownedSkins.includes(s.id));
+
+  inventoryGrid.innerHTML = skins.map(skin => {
+    const equipped = gameData.equippedSkin === skin.id;
+    return `
+      <div class="inventory-item ${rarityClass(skin.rarity)}">
+        <div class="skin-icon">${skin.icon}</div>
+        <div class="skin-name">${skin.name}</div>
+        <div class="skin-rarity">${rarityLabel(skin.rarity)}</div>
+        <button class="card-btn ${equipped ? "gray" : "secondary"}" ${equipped ? "disabled" : ""} onclick="equipSkin('${skin.id}')">
+          ${equipped ? "Đang dùng" : "Trang bị"}
+        </button>
+      </div>
+    `;
+  }).join("");
+}
+
+window.previewSkin = function (skinId) {
+  const skin = getSkinById(skinId);
+  selectedPreviewSkinId = skinId;
+  previewSkinIcon.textContent = skin.icon;
+  previewSkinName.textContent = skin.name;
+  previewSkinRarity.textContent = rarityLabel(skin.rarity);
+  previewSkinPrice.textContent = skin.price ? `${skin.price} xu` : "Skin đặc biệt";
+  previewBuyBtn.disabled = gameData.ownedSkins.includes(skin.id);
+  previewBuyBtn.textContent = gameData.ownedSkins.includes(skin.id) ? "Đã sở hữu" : "🛍️ Mua ngay";
+  openModal("previewModal");
+};
+
+window.buySkin = function (skinId) {
+  const skin = getSkinById(skinId);
+  if (!skin || gameData.ownedSkins.includes(skin.id)) return;
+
+  if (gameData.coins < skin.price) {
+    setStatus("Không đủ xu để mua skin này.");
+    return;
+  }
+
+  gameData.coins -= skin.price;
+  gameData.profit -= skin.price;
+  gameData.ownedSkins.push(skin.id);
+
+  addHistory("🛒 Mua skin", `Đã mua skin ${skin.name}`);
+  setStatus(`🛍️ Đã mua skin ${skin.name}.`);
+  speakBeep(700, 120, "triangle", 0.04);
+
+  updateUI();
+  renderShop();
+  renderInventory();
+  saveGame();
+};
+
+window.equipSkin = function (skinId) {
+  if (!gameData.ownedSkins.includes(skinId)) return;
+
+  gameData.equippedSkin = skinId;
+  createTrack();
+  addHistory("✨ Trang bị skin", `Đang dùng skin ${getSkinById(skinId).name}`);
+  setStatus(`✨ Đã trang bị skin ${getSkinById(skinId).name}.`);
+
+  renderInventory();
+  saveGame();
+};
+
+function renderAchievements() {
+  achievementsGrid.innerHTML = ACHIEVEMENTS.map(a => {
+    const unlocked = a.check(gameData);
+    return `
+      <div class="achievement-item ${unlocked ? "" : "locked"}">
+        <div class="achievement-title">${unlocked ? "🏆" : "🔒"} ${a.title}</div>
+        <div class="achievement-desc">${a.desc}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderSeasonBoard() {
+  const playerPoints = gameData.seasonPoints;
+  const playerName = gameData.playerName || "Bạn";
+
+  const board = [
+    { name: "Duck Master", points: 2400 },
+    { name: "Golden Goose", points: 1900 },
+    { name: "Rainbow Rider", points: 1450 },
+    { name: playerName, points: playerPoints },
+    { name: "Tiny Quack", points: 520 },
+    { name: "Lucky Wing", points: 310 }
+  ].sort((a, b) => b.points - a.points);
+
+  seasonBoard.innerHTML = board.map((item, index) => `
+    <div class="season-item">
+      <strong>#${index + 1} ${item.name}</strong>
+      <span>${item.points} điểm</span>
+    </div>
+  `).join("");
+}
+
+function getRewardByPlace(place) {
+  if (place === 1) return 100;
+  if (place === 2) return 50;
+  if (place === 3) return 25;
+  return 10;
+}
+
+function getSeasonPointsByPlace(place, bossDefeated) {
+  let base = place === 1 ? 80 : place === 2 ? 45 : place === 3 ? 20 : 8;
+  if (bossDefeated) base += 40;
+  return base;
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.remove("hidden");
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.add("hidden");
+}
+
+function showResultModal(playerPlace, reward) {
+  resultTitle.textContent = `Vịt bạn chọn về hạng ${playerPlace}!`;
+  resultReward.textContent = `+${reward} xu`;
+
+  resultRanking.innerHTML = ranking.map((duck) => {
+    const mark = duck.playerDuck ? "⭐ " : "";
+    const boss = duck.isBoss ? "👑 " : "";
+    return `<li>${mark}${boss}${duck.icon} ${duck.name}</li>`;
+  }).join("");
+
+  openModal("resultModal");
+}
+
+function claimDailyReward() {
+  const today = todayKey();
+  if (gameData.dailyClaimDate === today) {
+    setStatus("Bạn đã nhận quà ngày hôm nay rồi.");
+    return;
+  }
+
+  const reward = 200;
+  gameData.dailyClaimDate = today;
+  gameData.coins += reward;
+  gameData.profit += reward;
+  addHistory("🎁 Quà đăng nhập", `Nhận ${reward} xu`);
+  setStatus(`🎁 Đã nhận quà đăng nhập: ${reward} xu.`);
+  speakBeep(900, 140, "triangle", 0.04);
+
+  updateUI();
+  saveGame();
+}
+
+function resetAllData() {
+  localStorage.removeItem("duckRaceDeluxeV2Data");
+  gameData = {
+    playerName: "Người chơi",
+    coins: 1000,
+    exp: 0,
+    totalRaces: 0,
+    wins: 0,
+    losses: 0,
+    winStreak: 0,
+    bestStreak: 0,
+    profit: 0,
+    ownedSkins: ["classic"],
+    equippedSkin: "classic",
+    history: [],
+    fpsMode: "60",
+    speedMode: "normal",
+    effectsEnabled: true,
+    shakeEnabled: true,
+    dailyClaimDate: "",
+    questsDate: "",
+    dailyQuests: [],
+    spinCount: 0,
+    seasonPoints: 0
+  };
+
+  ensureDailySystems();
+  updateUI();
+  renderHistory();
+  renderQuests();
+  renderShop();
+  renderInventory();
+  renderAchievements();
+  renderSeasonBoard();
+  createTrack();
+  saveGame();
+  setStatus("Đã xóa toàn bộ dữ liệu game.");
+}
+
+function countdownSequence(callback) {
+  const steps = ["3", "2", "1", "GO!"];
+  let i = 0;
+
+  countdownOverlay.style.display = "grid";
+
+  function next() {
+    countdownOverlay.textContent = steps[i];
+
+    if (gameData.shakeEnabled && i < 3) {
+      trackWrap.classList.remove("shake");
+      void trackWrap.offsetWidth;
+      trackWrap.classList.add("shake");
+    }
+
+    speakBeep(550 + i * 120, 120, "square", 0.03);
+    i++;
+
+    if (i < steps.length) {
+      setTimeout(next, 650);
+    } else {
+      setTimeout(() => {
+        countdownOverlay.style.display = "none";
+        callback();
+      }, 500);
+    }
+  }
+
+  next();
+}
+
+function finishRace() {
+  raceRunning = false;
+  cancelAnimationFrame(animationId);
+
+  ducks.forEach(d => d.el.classList.remove("running", "boosted"));
+
+  const playerDuckId = Number(betDuckSelect.value);
+  const playerPlace = ranking.findIndex(d => d.id === playerDuckId) + 1 || ducks.length;
+  const reward = getRewardByPlace(playerPlace);
+  const winner = ranking[0];
+  const playerDuck = ducks.find(d => d.id === playerDuckId);
+  const bossPlace = ranking.findIndex(d => d.id === bossDuckId) + 1;
+  const bossDefeated = bossDuckId !== null && bossPlace > 0 && playerPlace < bossPlace;
+
+  gameData.totalRaces += 1;
+  gameData.coins += reward;
+  gameData.profit += reward;
+  addExp(playerPlace === 1 ? 30 : playerPlace === 2 ? 20 : 10);
+
+  const seasonAdd = getSeasonPointsByPlace(playerPlace, bossDefeated);
+  gameData.seasonPoints += seasonAdd;
+
+  if (playerPlace === 1) {
+    gameData.wins += 1;
+    gameData.winStreak += 1;
+    gameData.bestStreak = Math.max(gameData.bestStreak, gameData.winStreak);
+    incrementQuest("win1");
+    setStatus(`🎉 Vịt bạn chọn về nhất! Bạn nhận ${reward} xu!`);
+    launchConfetti();
+    playWinSound();
+  } else {
+    gameData.losses += 1;
+    gameData.winStreak = 0;
+    setStatus(`🏁 Vịt bạn chọn về hạng ${playerPlace}! Bạn nhận ${reward} xu!`);
+    playLoseSound();
+  }
+
+  if (bossDuckId !== null && bossDefeated) {
+    gameData.coins += 40;
+    gameData.profit += 40;
+    addHistory("👑 Hạ boss vịt vàng", `Nhận thêm 40 xu và ${seasonAdd} điểm mùa`);
+  }
+
+  if (winner) {
+    winner.el.classList.add("winner");
+  }
+
+  incrementQuest("play3");
+
+  addHistory("🏁 Kết thúc trận", `${playerDuck.icon} ${playerDuck.name} về hạng ${playerPlace}, nhận ${reward} xu`);
+  updateUI();
+  renderQuests();
+  renderAchievements();
+  renderSeasonBoard();
+  showResultModal(playerPlace, reward);
+  saveGame();
+
+  startRaceBtn.disabled = false;
+  resetRaceBtn.disabled = false;
+}
+
+function raceStep() {
+  const finishPos = getFinishPos();
+  const mult = speedMultiplier();
+
+  ducks.forEach((duck) => {
+    if (duck.finished) return;
+
+    duck.el.classList.remove("boosted");
+
+    const lucky = Math.random() < duck.sprintChance;
+    const randomVariance = 0.75 + Math.random() * 0.55;
+    const baseStep = ((1.2 + Math.random() * 3.8) * duck.basePower * duck.stability * randomVariance) * mult;
+    const bossBonus = duck.isBoss ? 0.35 * mult : 0;
+    const sprint = lucky ? duck.sprintPower * mult : 0;
+
+    duck.pos += baseStep + sprint + bossBonus;
+
+    if (lucky || duck.isBoss) {
+      duck.el.classList.add("boosted");
+    }
+
+    if (Math.random() < 0.35) {
+      spawnDust(duck);
+    }
+
+    if (duck.pos >= finishPos) {
+      duck.pos = finishPos;
+      duck.finished = true;
+      ranking.push(duck);
+      speakBeep(600 + ranking.length * 100, 70, "triangle", 0.025);
+    }
+
+    duck.el.style.left = `${duck.pos}px`;
+  });
+
+  if (ranking.length === ducks.length) {
+    finishRace();
+  }
+}
+
+function raceLoop(timestamp) {
+  if (!raceRunning) return;
+
+  if (!lastFrameTime) lastFrameTime = timestamp;
+  const delta = timestamp - lastFrameTime;
+  lastFrameTime = timestamp;
+  accumulator += delta;
+
+  const tick = getRaceTick();
+
+  while (accumulator >= tick) {
+    raceStep();
+    accumulator -= tick;
+    if (!raceRunning) break;
+  }
+
+  if (raceRunning) {
+    animationId = requestAnimationFrame(raceLoop);
+  }
+}
+
+function startActualRace() {
+  raceRunning = true;
+  ranking = [];
+  lastFrameTime = 0;
+  accumulator = 0;
+
+  ducks.forEach(d => {
+    d.pos = 18;
+    d.finished = false;
+    d.el.style.left = "18px";
+    d.el.classList.add("running");
+    d.el.classList.remove("winner");
+  });
+
+  setStatus(`🚀 Cuộc đua bắt đầu ở ${gameData.fpsMode} FPS!`);
+  animationId = requestAnimationFrame(raceLoop);
+}
+
+function startRace() {
+  if (raceRunning) return;
+
+  gameData.playerName = playerNameInput.value.trim() || "Người chơi";
+  updateUI();
+  createTrack();
+
+  startRaceBtn.disabled = true;
+  resetRaceBtn.disabled = true;
+
+  countdownSequence(() => {
+    startActualRace();
+    startRaceBtn.disabled = true;
+    resetRaceBtn.disabled = false;
+  });
+
+  saveGame();
+}
+
+function resetRace() {
+  cancelAnimationFrame(animationId);
+  raceRunning = false;
+  ranking = [];
+  createTrack();
+  setStatus("Đã reset đường đua.");
+  startRaceBtn.disabled = false;
+}
+
+function claimSpinReward(reward) {
+  if (reward.type === "coins") {
+    gameData.coins += reward.value;
+    gameData.profit += reward.value;
+    addHistory("🎡 Vòng quay", `Nhận ${reward.value} xu`);
+    setStatus(`🎡 Bạn nhận ${reward.value} xu từ vòng quay.`);
+  } else {
+    const skin = getSkinById(reward.value);
+    if (!gameData.ownedSkins.includes(skin.id)) {
+      gameData.ownedSkins.push(skin.id);
+      addHistory("🎡 Vòng quay", `Nhận skin ${skin.name}`);
+      setStatus(`🎡 Bạn quay trúng skin ${skin.name}!`);
+    } else {
+      gameData.coins += 80;
+      gameData.profit += 80;
+      addHistory("🎡 Vòng quay", `Trùng skin ${skin.name}, đổi thành 80 xu`);
+      setStatus(`🎡 Trùng skin ${skin.name}, đổi thành 80 xu.`);
+    }
+  }
+
+  incrementQuest("spin1");
+  updateUI();
+  renderQuests();
+  renderShop();
+  renderInventory();
+  renderAchievements();
+  saveGame();
+}
+
+function spinWheel() {
+  if (raceRunning || spinCooldown) return;
+
+  spinCooldown = true;
+  spinOnceBtn.disabled = true;
+
+  const rewardIndex = Math.floor(Math.random() * SPIN_REWARDS.length);
+  const reward = SPIN_REWARDS[rewardIndex];
+
+  const segmentAngle = 360 / SPIN_REWARDS.length;
+  const centerAngle = rewardIndex * segmentAngle + segmentAngle / 2;
+  const extra = 360 * (5 + Math.floor(Math.random() * 3));
+  const final = extra + (360 - centerAngle);
+
+  wheelCore.style.transform = `rotate(${final}deg)`;
+  speakBeep(500, 110, "square", 0.03);
+
+  setTimeout(() => {
+    claimSpinReward(reward);
+    spinCooldown = false;
+    spinOnceBtn.disabled = false;
+    speakBeep(920, 140, "triangle", 0.04);
+  }, 4300);
+}
+
+function saveSettings() {
+  gameData.fpsMode = settingsFpsSelect.value;
+  gameData.speedMode = settingsSpeedSelect.value;
+  fpsModeSelect.value = gameData.fpsMode;
+  speedModeSelect.value = gameData.speedMode;
+  saveGame();
+  setStatus("⚙️ Đã lưu cài đặt game.");
+  closeModal("settingsModal");
+}
+
+function bindModalButtons() {
+  document.querySelectorAll("[data-close]").forEach(btn => {
+    btn.addEventListener("click", () => closeModal(btn.dataset.close));
+  });
+
+  document.querySelectorAll(".modal-backdrop").forEach(backdrop => {
+    backdrop.addEventListener("click", (e) => {
+      if (e.target === backdrop) {
+        backdrop.classList.add("hidden");
+      }
+    });
+  });
+}
+
+function syncControlValuesToSettings() {
+  settingsFpsSelect.value = fpsModeSelect.value;
+  settingsSpeedSelect.value = speedModeSelect.value;
+}
+
+function toggleMobileMenu() {
+  heroActions.classList.toggle("show-mobile");
+}
+
+function init() {
+  loadGame();
+  ensureDailySystems();
+  updateUI();
+  renderHistory();
+  renderQuests();
+  renderShop();
+  renderInventory();
+  renderAchievements();
+  renderSeasonBoard();
+
+  duckCountSelect.value = "4";
+  populateDuckOptions();
+  createTrack();
+  bindModalButtons();
+
+  openRaceBtn.addEventListener("click", () => {
+    document.getElementById("raceSection").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  openShopBtn.addEventListener("click", () => openModal("shopModal"));
+  openInventoryBtn.addEventListener("click", () => openModal("inventoryModal"));
+  openSpinBtn.addEventListener("click", () => openModal("spinModal"));
+  openAchievementsBtn.addEventListener("click", () => {
+    renderAchievements();
+    openModal("achievementsModal");
+  });
+  openSeasonBtn.addEventListener("click", () => {
+    renderSeasonBoard();
+    openModal("seasonModal");
+  });
+  openSettingsBtn.addEventListener("click", () => {
+    syncControlValuesToSettings();
+    openModal("settingsModal");
+  });
+
+  claimDailyBtn.addEventListener("click", claimDailyReward);
+  mobileMenuBtn.addEventListener("click", toggleMobileMenu);
+
+  playerNameInput.addEventListener("input", () => {
+    gameData.playerName = playerNameInput.value.trim() || "Người chơi";
+    updateUI();
+    saveGame();
+  });
+
+  duckCountSelect.addEventListener("change", () => {
+    populateDuckOptions();
+    createTrack();
+  });
+
+  betDuckSelect.addEventListener("change", createTrack);
+
+  fpsModeSelect.addEventListener("change", () => {
+    gameData.fpsMode = fpsModeSelect.value;
+    settingsFpsSelect.value = gameData.fpsMode;
+    saveGame();
+    setStatus(`⚙️ Đã chuyển sang ${gameData.fpsMode} FPS.`);
+  });
+
+  speedModeSelect.addEventListener("change", () => {
+    gameData.speedMode = speedModeSelect.value;
+    settingsSpeedSelect.value = gameData.speedMode;
+    saveGame();
+    setStatus(`⚙️ Tốc độ đua: ${gameData.speedMode}.`);
+  });
+
+  effectsToggleBtn.addEventListener("click", () => {
+    gameData.effectsEnabled = !gameData.effectsEnabled;
+    effectsToggleBtn.textContent = gameData.effectsEnabled ? "Bật" : "Tắt";
+    saveGame();
+  });
+
+  shakeToggleBtn.addEventListener("click", () => {
+    gameData.shakeEnabled = !gameData.shakeEnabled;
+    shakeToggleBtn.textContent = gameData.shakeEnabled ? "Bật" : "Tắt";
+    saveGame();
+  });
+
+  startRaceBtn.addEventListener("click", startRace);
+  resetRaceBtn.addEventListener("click", resetRace);
+  spinOnceBtn.addEventListener("click", spinWheel);
+  saveSettingsBtn.addEventListener("click", saveSettings);
+  resetDataBtn.addEventListener("click", resetAllData);
+
+  previewBuyBtn.addEventListener("click", () => {
+    if (selectedPreviewSkinId) {
+      window.buySkin(selectedPreviewSkinId);
+      window.previewSkin(selectedPreviewSkinId);
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    ducks.forEach(duck => {
+      duck.el.style.left = `${duck.pos}px`;
+    });
+  });
+
+  setStatus("Sẵn sàng chơi.");
+}
+
+init();
