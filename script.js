@@ -11,6 +11,8 @@ const SKINS = [
 ];
 
 const AI_ICONS = ["🦆", "🐥", "🐤", "🪿", "🐣", "🦆", "🐤", "🪿"];
+
+/* ĐỔI TÊN VỊT Ở ĐÂY */
 const DUCK_NAMES = [
   "Vịt Sấm Sét",
   "Vịt Thần Tốc",
@@ -18,8 +20,9 @@ const DUCK_NAMES = [
   "Vịt Hoàng Gia",
   "Vịt Cầu Vồng",
   "Vịt Băng",
-  "Vịt Boss"
+  "Vịt Bóng Đêm"
 ];
+
 const SEASON_RANKS = [
   { min: 0, name: "Đồng" },
   { min: 300, name: "Bạc" },
@@ -312,9 +315,10 @@ function populateDuckOptions() {
   betDuckSelect.innerHTML = "";
 
   for (let i = 0; i < count; i++) {
+    const duckName = DUCK_NAMES[i] || `Vịt ${i + 1}`;
     const option = document.createElement("option");
     option.value = i;
-    option.textContent = `Vịt ${i + 1}`;
+    option.textContent = duckName;
     betDuckSelect.appendChild(option);
   }
 
@@ -346,7 +350,9 @@ function createTrack() {
 
     const label = document.createElement("div");
     label.className = "lane-label";
-    label.textContent = i === bossDuckId ? `Vịt ${i + 1} 👑 Boss` : `Vịt ${i + 1}`;
+
+    const duckName = DUCK_NAMES[i] || `Vịt ${i + 1}`;
+    label.textContent = i === bossDuckId ? `${duckName} 👑 Boss` : duckName;
 
     const duck = document.createElement("div");
     duck.className = "duck";
@@ -379,7 +385,7 @@ function createTrack() {
 
     ducks.push({
       id: i,
-      name: `Vịt ${i + 1}`,
+      name: duckName,
       icon,
       el: duck,
       pos: 18,
@@ -494,7 +500,7 @@ function renderQuests() {
 
 window.claimQuestReward = function (id) {
   const quest = gameData.dailyQuests.find(q => q.id === id);
-  if (!quest || quest.claimed || quest.progress < q.goal) return;
+  if (!quest || quest.claimed || quest.progress < quest.goal) return;
 
   quest.claimed = true;
   gameData.coins += quest.reward;
@@ -782,13 +788,13 @@ function finishRace() {
     gameData.winStreak += 1;
     gameData.bestStreak = Math.max(gameData.bestStreak, gameData.winStreak);
     incrementQuest("win1");
-    setStatus(`🎉 Vịt bạn chọn về nhất! Bạn nhận ${reward} xu!`);
+    setStatus(`🎉 ${playerDuck.name} về nhất! Bạn nhận ${reward} xu!`);
     launchConfetti();
     playWinSound();
   } else {
     gameData.losses += 1;
     gameData.winStreak = 0;
-    setStatus(`🏁 Vịt bạn chọn về hạng ${playerPlace}! Bạn nhận ${reward} xu!`);
+    setStatus(`🏁 ${playerDuck.name} về hạng ${playerPlace}! Bạn nhận ${reward} xu!`);
     playLoseSound();
   }
 
@@ -854,10 +860,11 @@ function raceStep() {
     }
   });
 
+  /* CAMERA BÁM THEO VỊT MÌNH CHỌN */
   const playerDuck = ducks.find(d => d.playerDuck);
   if (playerDuck && trackScroll) {
-    const target = Math.max(0, playerDuck.el.offsetLeft - 120);
-    trackScroll.scrollLeft = target;
+    const target = Math.max(0, playerDuck.el.offsetLeft - trackScroll.clientWidth * 0.35);
+    trackScroll.scrollLeft += (target - trackScroll.scrollLeft) * 0.12;
   }
 
   if (ranking.length === ducks.length) {
