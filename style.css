@@ -941,7 +941,16 @@ select:focus {
   width: 100%;
 }
 
-#trackWrap {
+.track-wrap {
+  min-height: 330px;
   min-width: 1400px;
+}
+.track-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  border-radius: 24px;
 }
 }
