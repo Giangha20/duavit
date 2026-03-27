@@ -346,11 +346,7 @@ function createTrack() {
   trackWrap.style.minHeight = `${count * 82}px`;
 
   bossDuckId = Math.random() < 0.22 ? Math.floor(Math.random() * count) : null;
-  if (bossDuckId !== null) {
-    bossBanner.classList.remove("hidden");
-  } else {
-    bossBanner.classList.add("hidden");
-  }
+  bossBanner.classList.toggle("hidden", bossDuckId === null);
 
   for (let i = 0; i < count; i++) {
     const lane = document.createElement("div");
@@ -363,7 +359,7 @@ function createTrack() {
 
     const duck = document.createElement("div");
     duck.className = "duck";
-    duck.style.transform = "translateX(18px)";
+    duck.style.left = "18px";
 
     const playerDuck = i === chosenDuck;
     let icon = playerDuck ? equippedSkin.icon : AI_ICONS[i % AI_ICONS.length];
@@ -457,9 +453,7 @@ function spawnDust(duck) {
   dust.style.top = `${duck.el.offsetTop + 32}px`;
   trackWrap.appendChild(dust);
 
-  setTimeout(() => {
-    dust.remove();
-  }, 380);
+  setTimeout(() => dust.remove(), 380);
 }
 
 function renderHistory() {
@@ -496,7 +490,7 @@ function renderQuests() {
         <div class="progress-mini">
           <div class="progress-mini-fill" style="width:${percent}%"></div>
         </div>
-        <button class="card-btn ${q.claimed || q.progress < q.goal ? "gray" : ""}" 
+        <button class="card-btn ${q.claimed || q.progress < q.goal ? "gray" : ""}"
           ${q.claimed || q.progress < q.goal ? "disabled" : ""}
           onclick="claimQuestReward('${q.id}')">
           ${q.claimed ? "Đã nhận" : `Nhận ${q.reward} xu`}
@@ -831,7 +825,7 @@ function raceStep() {
     if (lucky || duck.isBoss) duck.el.classList.add("boosted");
 
     const visiblePos = Math.min((duck.pos / finishPos) * visibleFinish, visibleFinish);
-    duck.el.style.transform = `translateX(${visiblePos}px)`;
+    duck.el.style.left = `${visiblePos}px`;
 
     if (Math.random() < (window.innerWidth <= 768 ? 0.08 : 0.22)) {
       spawnDust(duck);
@@ -842,7 +836,7 @@ function raceStep() {
       duck.finished = true;
       ranking.push(duck);
       speakBeep(600 + ranking.length * 100, 70, "triangle", 0.025);
-      duck.el.style.transform = `translateX(${visibleFinish}px)`;
+      duck.el.style.left = `${visibleFinish}px`;
     }
   });
 
@@ -884,7 +878,7 @@ function startActualRace() {
   ducks.forEach(d => {
     d.pos = 18;
     d.finished = false;
-    d.el.style.transform = "translateX(18px)";
+    d.el.style.left = "18px";
     d.el.classList.add("running");
     d.el.classList.remove("winner");
   });
@@ -1066,10 +1060,12 @@ function init() {
 
   openSpinBtn.addEventListener("click", () => openModal("spinModal"));
 
-  openAchievementsBtn?.addEventListener("click", () => {
-    renderAchievements();
-    openModal("achievementsModal");
-  });
+  if (openAchievementsBtn) {
+    openAchievementsBtn.addEventListener("click", () => {
+      renderAchievements();
+      openModal("achievementsModal");
+    });
+  }
 
   openSeasonBtn.addEventListener("click", () => {
     renderSeasonBoard();
@@ -1139,7 +1135,7 @@ function init() {
 
     ducks.forEach(duck => {
       const visiblePos = Math.min((duck.pos / finishPos) * visibleFinish, visibleFinish);
-      duck.el.style.transform = `translateX(${visiblePos}px)`;
+      duck.el.style.left = `${visiblePos}px`;
     });
   });
 
