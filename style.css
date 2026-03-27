@@ -444,6 +444,7 @@ select:focus {
   position: relative;
   margin-top: 18px;
   min-height: 360px;
+  min-width: 1400px;
   border-radius: 24px;
   overflow: hidden;
   border: 3px solid #347433;
@@ -933,4 +934,14 @@ select:focus {
   .preview-skin-icon {
     font-size: 60px;
   }
+  .track-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}
+
+#trackWrap {
+  min-width: 1400px;
+}
 }
