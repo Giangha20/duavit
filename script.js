@@ -42,6 +42,9 @@ const SPIN_REWARDS = [
   { type: "skin", value: "legend", label: "Vật phẩm hiếm" }
 ];
 
+// Độ dài đường đua nội bộ: tăng số này nếu muốn đua lâu hơn
+const TRACK_LENGTH_MULTIPLIER = 1.9;
+
 const playerNameInput = document.getElementById("playerNameInput");
 const duckCountSelect = document.getElementById("duckCountSelect");
 const betDuckSelect = document.getElementById("betDuckSelect");
@@ -283,7 +286,6 @@ function updateUI() {
   const winRate = gameData.totalRaces === 0 ? 0 : Math.round((gameData.wins / gameData.totalRaces) * 100);
   winRateText.textContent = `${winRate}%`;
 
-  playerNameInput.value = gameData.playerName || "Người chơi";
   fpsModeSelect.value = gameData.fpsMode;
   speedModeSelect.value = gameData.speedMode;
   settingsFpsSelect.value = gameData.fpsMode;
@@ -383,8 +385,12 @@ function createTrack() {
   }
 }
 
+function getVisibleFinishPos() {
+  return trackWrap.scrollWidth - 130;
+}
+
 function getFinishPos() {
-  return trackWrap.clientWidth - 130;
+  return getVisibleFinishPos() * TRACK_LENGTH_MULTIPLIER;
 }
 
 function getRaceTick() {
@@ -423,7 +429,7 @@ function spawnDust(duck) {
 
   const dust = document.createElement("div");
   dust.className = "dust";
-  dust.style.left = `${Math.max(0, duck.pos - 8)}px`;
+  dust.style.left = `${Math.max(0, duck.el.offsetLeft - 8)}px`;
   dust.style.top = `${duck.el.offsetTop + 32}px`;
   trackWrap.appendChild(dust);
 
@@ -702,6 +708,7 @@ function resetAllData() {
   renderInventory();
   renderAchievements();
   renderSeasonBoard();
+  playerNameInput.value = "";
   createTrack();
   saveGame();
   setStatus("Đã xóa toàn bộ dữ liệu game.");
@@ -801,6 +808,7 @@ function finishRace() {
 
 function raceStep() {
   const finishPos = getFinishPos();
+  const visibleFinish = getVisibleFinishPos();
   const mult = speedMultiplier();
 
   ducks.forEach((duck) => {
@@ -820,6 +828,9 @@ function raceStep() {
       duck.el.classList.add("boosted");
     }
 
+    const visiblePos = Math.min((duck.pos / finishPos) * visibleFinish, visibleFinish);
+    duck.el.style.left = `${visiblePos}px`;
+
     if (Math.random() < 0.35) {
       spawnDust(duck);
     }
@@ -829,9 +840,8 @@ function raceStep() {
       duck.finished = true;
       ranking.push(duck);
       speakBeep(600 + ranking.length * 100, 70, "triangle", 0.025);
+      duck.el.style.left = `${visibleFinish}px`;
     }
-
-    duck.el.style.left = `${duck.pos}px`;
   });
 
   if (ranking.length === ducks.length) {
@@ -882,7 +892,7 @@ function startRace() {
   if (raceRunning) return;
 
   gameData.playerName = playerNameInput.value.trim() || "Người chơi";
-  updateUI();
+  playerNameDisplay.textContent = gameData.playerName || "Người chơi";
   createTrack();
 
   startRaceBtn.disabled = true;
@@ -996,6 +1006,11 @@ function toggleMobileMenu() {
 function init() {
   loadGame();
   ensureDailySystems();
+
+  playerNameInput.value = gameData.playerName && gameData.playerName !== "Người chơi"
+    ? gameData.playerName
+    : "";
+
   updateUI();
   renderHistory();
   renderQuests();
@@ -1033,8 +1048,8 @@ function init() {
   mobileMenuBtn.addEventListener("click", toggleMobileMenu);
 
   playerNameInput.addEventListener("input", () => {
-    gameData.playerName = playerNameInput.value.trim() || "Người chơi";
-    updateUI();
+    gameData.playerName = playerNameInput.value;
+    playerNameDisplay.textContent = gameData.playerName || "Người chơi";
     saveGame();
   });
 
@@ -1085,8 +1100,12 @@ function init() {
   });
 
   window.addEventListener("resize", () => {
+    const visibleFinish = getVisibleFinishPos();
+    const finishPos = getFinishPos();
+
     ducks.forEach(duck => {
-      duck.el.style.left = `${duck.pos}px`;
+      const visiblePos = Math.min((duck.pos / finishPos) * visibleFinish, visibleFinish);
+      duck.el.style.left = `${visiblePos}px`;
     });
   });
 
