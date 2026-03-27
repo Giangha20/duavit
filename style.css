@@ -627,6 +627,7 @@ select:focus {
 }
 
 .duck.boosted {
+  transform: scale(1.12);
   filter: drop-shadow(0 0 12px gold);
 }
 
@@ -763,9 +764,7 @@ select:focus {
 .shop-grid,
 .inventory-grid,
 .achievements-grid {
-  display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
 }
 
 .shop-item.rare,
