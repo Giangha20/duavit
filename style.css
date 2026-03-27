@@ -1040,4 +1040,53 @@ select:focus {
   .preview-skin-icon {
     font-size: 60px;
   }
+  .spin-reward-toast {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 20px;
+}
+
+.spin-reward-box {
+  width: min(420px, 92vw);
+  background: linear-gradient(135deg, #fff8e7, #ffffff);
+  border: 3px solid #ffd166;
+  border-radius: 24px;
+  padding: 24px 18px;
+  text-align: center;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+  animation: rewardPop 0.35s ease;
+}
+
+.spin-reward-icon {
+  font-size: 64px;
+  margin-bottom: 10px;
+}
+
+.spin-reward-title {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #ff8a00;
+  margin-bottom: 8px;
+}
+
+.spin-reward-text {
+  font-size: 1.05rem;
+  font-weight: bold;
+  color: #203041;
+}
+
+@keyframes rewardPop {
+  0% {
+    transform: scale(0.75);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
 }
