@@ -3,350 +3,60 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Duck Race Luxury</title>
+  <title>Game Đua Vịt</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="bg-layer">
-    <div class="cloud cloud-1"></div>
-    <div class="cloud cloud-2"></div>
-    <div class="cloud cloud-3"></div>
-  </div>
+  <div class="container">
+    <h1>🦆 GAME ĐUA VỊT 🦆</h1>
+    <p class="subtitle">Chọn vịt rồi bấm bắt đầu để xem ai thắng</p>
 
-  <div class="app-shell">
-    <header class="topbar glass">
-      <div class="brand">
-        <div class="brand-icon">🦆</div>
-        <div>
-          <h1>Duck Race Luxury</h1>
-          <p>Game đua vịt do Hà Hữu Giang tạo</p>
-        </div>
+    <div class="control-panel">
+      <label for="bet">Chọn vịt bạn cược:</label>
+      <select id="bet">
+        <option value="0">Vịt 1</option>
+        <option value="1">Vịt 2</option>
+        <option value="2">Vịt 3</option>
+        <option value="3">Vịt 4</option>
+      </select>
+
+      <button id="startBtn">Bắt đầu đua</button>
+      <button id="resetBtn">Chơi lại</button>
+    </div>
+
+    <div class="status-box">
+      <p id="status">Nhấn "Bắt đầu đua" để chơi.</p>
+    </div>
+
+    <div class="track" id="track">
+      <div class="finish-line"></div>
+
+      <div class="lane">
+        <div class="lane-label">Vịt 1</div>
+        <div class="duck" id="duck0">🦆</div>
       </div>
 
-      <div class="player-summary">
-        <div class="summary-chip"><span>💰</span><strong id="coinsText">1000</strong></div>
-        <div class="summary-chip"><span>⭐</span><strong id="levelText">1</strong></div>
-        <div class="summary-chip"><span>🔥</span><strong id="streakText">0</strong></div>
-      </div>
-    </header>
-
-    <section class="hero-grid">
-      <div class="hero-card glass">
-        <div class="hero-title-row">
-          <div>
-            <h2>🎮 Menu chính</h2>
-            <p class="muted">Chọn chức năng bên dưới để chơi</p>
-          </div>
-          <button class="icon-btn" id="mobileMenuBtn">☰</button>
-        </div>
-
-        <div class="hero-actions" id="heroActions">
-          <button class="main-btn" id="openRaceBtn">🏁 Vào đường đua</button>
-          <button class="main-btn alt" id="openShopBtn">🛒 Shop skin</button>
-          <button class="main-btn alt" id="openInventoryBtn">🎒 Kho đồ</button>
-          <button class="main-btn alt" id="openSpinBtn">🎡 Vòng quay</button>
-          <button class="main-btn alt" id="openAchievementsBtn">🏆 Thành tựu</button>
-          <button class="main-btn alt" id="openSeasonBtn">👑 BXH mùa</button>
-          <button class="main-btn alt" id="openSettingsBtn">⚙️ Cài đặt</button>
-          <button class="main-btn alt" id="claimDailyBtn">🎁 Nhận quà ngày</button>
-        </div>
+      <div class="lane">
+        <div class="lane-label">Vịt 2</div>
+        <div class="duck" id="duck1">🐤</div>
       </div>
 
-      <div class="hero-card glass">
-        <h2>👤 Hồ sơ người chơi</h2>
-
-        <div class="profile-grid">
-          <div class="profile-item">
-            <span>Tên</span>
-            <strong id="playerNameDisplay">Người chơi</strong>
-          </div>
-          <div class="profile-item">
-            <span>Level</span>
-            <strong id="profileLevelText">1</strong>
-          </div>
-          <div class="profile-item">
-            <span>EXP</span>
-            <strong id="expText">0 / 100</strong>
-          </div>
-          <div class="profile-item">
-            <span>Tổng trận</span>
-            <strong id="totalRacesText">0</strong>
-          </div>
-        </div>
-
-        <div class="exp-wrap">
-          <div class="exp-bar">
-            <div class="exp-fill" id="expFill"></div>
-          </div>
-        </div>
-
-        <div class="profile-stats">
-          <div class="stat-box">
-            <span>Tỉ lệ top 1</span>
-            <strong id="winRateText">0%</strong>
-          </div>
-          <div class="stat-box">
-            <span>Top 1</span>
-            <strong id="winsText">0</strong>
-          </div>
-          <div class="stat-box">
-            <span>Không top 1</span>
-            <strong id="lossesText">0</strong>
-          </div>
-          <div class="stat-box">
-            <span>Tổng lời</span>
-            <strong id="profitText">0</strong>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="dashboard-grid">
-      <div class="panel glass">
-        <div class="panel-head">
-          <h3>📋 Nhiệm vụ ngày</h3>
-          <span class="muted">Mỗi ngày tự reset</span>
-        </div>
-        <div id="questsList" class="quest-list"></div>
+      <div class="lane">
+        <div class="lane-label">Vịt 3</div>
+        <div class="duck" id="duck2">🦆</div>
       </div>
 
-      <div class="panel glass">
-        <div class="panel-head">
-          <h3>🧾 Hoạt động gần đây</h3>
-          <span class="muted">Lịch sử trận / thưởng</span>
-        </div>
-        <div id="historyList" class="history-list"></div>
-      </div>
-    </section>
-
-    <section class="race-panel glass" id="raceSection">
-      <div class="race-top">
-        <div>
-          <h2>🏁 Đường đua</h2>
-          <p class="muted">Chọn vịt, skin, tốc độ rồi bắt đầu</p>
-        </div>
-        <div class="race-badges">
-          <span class="badge">🥇 +100</span>
-          <span class="badge">🥈 +50</span>
-          <span class="badge">🥉 +25</span>
-          <span class="badge">🏅 +10</span>
-        </div>
-      </div>
-
-      <div class="race-controls">
-        <div class="input-group">
-          <label for="playerNameInput">Tên người chơi</label>
-          <input id="playerNameInput" type="text" maxlength="20" placeholder="Nhập tên của bạn" />
-        </div>
-
-        <div class="input-group">
-          <label for="duckCountSelect">Số lượng vịt</label>
-          <select id="duckCountSelect">
-            <option value="4">4 con</option>
-            <option value="5">5 con</option>
-            <option value="6">6 con</option>
-            <option value="7">7 con</option>
-          </select>
-        </div>
-
-        <div class="input-group">
-          <label for="betDuckSelect">Chọn vịt</label>
-          <select id="betDuckSelect"></select>
-        </div>
-
-        <div class="input-group">
-          <label for="speedModeSelect">Tốc độ</label>
-          <select id="speedModeSelect">
-            <option value="slow">Chậm</option>
-            <option value="normal">Bình thường</option>
-            <option value="fast">Nhanh</option>
-            <option value="crazy">Siêu nhanh</option>
-          </select>
-        </div>
-
-        <div class="input-group">
-          <label for="fpsModeSelect">FPS</label>
-          <select id="fpsModeSelect">
-            <option value="60">60 FPS</option>
-            <option value="120">120 FPS</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="action-row">
-        <button class="main-btn" id="startRaceBtn">🚀 Bắt đầu</button>
-        <button class="main-btn alt" id="resetRaceBtn">🔄 Chơi lại</button>
-      </div>
-
-      <div class="status-line" id="statusText">Nhấn “Bắt đầu” để chơi.</div>
-
-     <div class="countdown-overlay" id="countdownOverlay">3</div>
-
-<div class="track-scroll" id="trackScroll">
-  <div class="track-wrap" id="trackWrap">
-    <div class="finish-line"></div>
-    <div id="bossBanner" class="boss-banner hidden">👑 BOSS VỊT VÀNG XUẤT HIỆN!</div>
-    <div id="trackLanes"></div>
-    <div id="confettiLayer" class="confetti-layer"></div>
-  </div>
-</div>
-    </section>
-  </div>
-
-  <div class="modal-backdrop hidden" id="shopModal">
-    <div class="modal glass">
-      <div class="modal-head">
-        <h2>🛒 Shop skin</h2>
-        <button class="close-btn" data-close="shopModal">✕</button>
-      </div>
-      <div class="modal-body">
-        <div id="shopGrid" class="shop-grid"></div>
+      <div class="lane">
+        <div class="lane-label">Vịt 4</div>
+        <div class="duck" id="duck3">🐥</div>
       </div>
     </div>
-  </div>
 
-  <div class="modal-backdrop hidden" id="inventoryModal">
-    <div class="modal glass">
-      <div class="modal-head">
-        <h2>🎒 Kho skin</h2>
-        <button class="close-btn" data-close="inventoryModal">✕</button>
-      </div>
-      <div class="modal-body">
-        <div id="inventoryGrid" class="inventory-grid"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-backdrop hidden" id="spinModal">
-    <div class="modal glass modal-narrow">
-      <div class="modal-head">
-        <h2>🎡 Vòng quay may mắn</h2>
-        <button class="close-btn" data-close="spinModal">✕</button>
-      </div>
-      <div class="modal-body center-body">
-        <div class="spin-pointer">▼</div>
-        <div class="wheel-frame">
-          <div class="wheel-core" id="wheelCore">🎁</div>
-        </div>
-        <div class="spin-reward-list">
-          <div>30 xu</div>
-          <div>50 xu</div>
-          <div>Skin Royal</div>
-          <div>Skin Flame</div>
-          <div>Skin Rainbow</div>
-          <div>Vật phẩm hiếm</div>
-        </div>
-        <button class="main-btn" id="spinOnceBtn">🎡 Quay ngay</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-backdrop hidden" id="settingsModal">
-    <div class="modal glass modal-narrow">
-      <div class="modal-head">
-        <h2>⚙️ Cài đặt game</h2>
-        <button class="close-btn" data-close="settingsModal">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="settings-list">
-          <div class="input-group">
-            <label for="settingsFpsSelect">FPS</label>
-            <select id="settingsFpsSelect">
-              <option value="60">60 FPS</option>
-              <option value="120">120 FPS</option>
-            </select>
-          </div>
-
-          <div class="input-group">
-            <label for="settingsSpeedSelect">Tốc độ đua</label>
-            <select id="settingsSpeedSelect">
-              <option value="slow">Chậm</option>
-              <option value="normal">Bình thường</option>
-              <option value="fast">Nhanh</option>
-              <option value="crazy">Siêu nhanh</option>
-            </select>
-          </div>
-
-          <div class="toggle-row">
-            <span>Hiệu ứng nặng</span>
-            <button class="toggle-btn" id="effectsToggleBtn">Bật</button>
-          </div>
-
-          <div class="toggle-row">
-            <span>Rung mở màn</span>
-            <button class="toggle-btn" id="shakeToggleBtn">Bật</button>
-          </div>
-
-          <div class="action-row tight">
-            <button class="main-btn" id="saveSettingsBtn">💾 Lưu cài đặt</button>
-            <button class="main-btn danger-btn" id="resetDataBtn">🗑 Xóa dữ liệu</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-backdrop hidden" id="achievementsModal">
-    <div class="modal glass">
-      <div class="modal-head">
-        <h2>🏆 Thành tựu</h2>
-        <button class="close-btn" data-close="achievementsModal">✕</button>
-      </div>
-      <div class="modal-body">
-        <div id="achievementsGrid" class="achievements-grid"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-backdrop hidden" id="seasonModal">
-    <div class="modal glass modal-narrow">
-      <div class="modal-head">
-        <h2>👑 Bảng xếp hạng mùa</h2>
-        <button class="close-btn" data-close="seasonModal">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="season-stats">
-          <div class="profile-item">
-            <span>Điểm mùa của bạn</span>
-            <strong id="seasonPointsText">0</strong>
-          </div>
-          <div class="profile-item">
-            <span>Hạng hiện tại</span>
-            <strong id="seasonRankText">Bạc</strong>
-          </div>
-        </div>
-        <div id="seasonBoard" class="season-board"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-backdrop hidden" id="resultModal">
-    <div class="modal glass modal-narrow">
-      <div class="modal-head">
-        <h2>📣 Kết quả trận đua</h2>
-        <button class="close-btn" data-close="resultModal">✕</button>
-      </div>
-      <div class="modal-body">
-        <div id="resultTitle" class="result-title">Kết quả</div>
-        <div id="resultReward" class="result-reward">+0 xu</div>
-        <ol id="resultRanking" class="result-ranking"></ol>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-backdrop hidden" id="previewModal">
-    <div class="modal glass modal-narrow">
-      <div class="modal-head">
-        <h2>👀 Preview skin</h2>
-        <button class="close-btn" data-close="previewModal">✕</button>
-      </div>
-      <div class="modal-body center-body">
-        <div id="previewSkinIcon" class="preview-skin-icon">🦆</div>
-        <div id="previewSkinName" class="preview-skin-name">Classic</div>
-        <div id="previewSkinRarity" class="preview-skin-rarity">Thường</div>
-        <div id="previewSkinPrice" class="preview-skin-price">0 xu</div>
-        <button class="main-btn" id="previewBuyBtn">🛍️ Mua ngay</button>
-      </div>
+    <div class="result-box">
+      <h2>Bảng kết quả</h2>
+      <ol id="rankingList">
+        <li>Chưa có kết quả</li>
+      </ol>
     </div>
   </div>
 
