@@ -22,11 +22,37 @@ const DUCK_NAMES = [
 ];
 
 const SEASON_RANKS = [
-  { min: 0, name: "Đồng" },
-  { min: 300, name: "Bạc" },
-  { min: 700, name: "Vàng" },
-  { min: 1200, name: "Bạch Kim" },
-  { min: 1800, name: "Kim Cương" }
+  { min: 0, name: "Đồng V" },
+  { min: 100, name: "Đồng IV" },
+  { min: 200, name: "Đồng III" },
+  { min: 300, name: "Đồng II" },
+  { min: 400, name: "Đồng I" },
+  { min: 500, name: "Bạc V" },
+  { min: 600, name: "Bạc IV" },
+  { min: 700, name: "Bạc III" },
+  { min: 800, name: "Bạc II" },
+  { min: 900, name: "Bạc I" },
+  { min: 1000, name: "Vàng V" },
+  { min: 1100, name: "Vàng IV" },
+  { min: 1200, name: "Vàng III" },
+  { min: 1300, name: "Vàng II" },
+  { min: 1400, name: "Vàng I" },
+  { min: 1500, name: "Bạch Kim V" },
+  { min: 1600, name: "Bạch Kim IV" },
+  { min: 1700, name: "Bạch Kim III" },
+  { min: 1800, name: "Bạch Kim II" },
+  { min: 1900, name: "Bạch Kim I" },
+  { min: 2000, name: "Kim Cương V" },
+  { min: 2100, name: "Kim Cương IV" },
+  { min: 2200, name: "Kim Cương III" },
+  { min: 2300, name: "Kim Cương II" },
+  { min: 2400, name: "Kim Cương I" },
+  { min: 2500, name: "Cao Thủ V" },
+  { min: 2600, name: "Cao Thủ IV" },
+  { min: 2700, name: "Cao Thủ III" },
+  { min: 2800, name: "Cao Thủ II" },
+  { min: 2900, name: "Cao Thủ I" },
+  { min: 3000, name: "Chí Tôn" },
 ];
 
 const DAILY_QUESTS_TEMPLATE = [
