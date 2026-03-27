@@ -42,8 +42,7 @@ const SPIN_REWARDS = [
   { type: "skin", value: "legend", label: "Vật phẩm hiếm" }
 ];
 
-// Độ dài đường đua nội bộ: tăng số này nếu muốn đua lâu hơn
-const TRACK_LENGTH_MULTIPLIER = 1.9;
+const FIXED_RACE_DISTANCE = 1800;
 
 const playerNameInput = document.getElementById("playerNameInput");
 const duckCountSelect = document.getElementById("duckCountSelect");
@@ -72,6 +71,7 @@ const statusText = document.getElementById("statusText");
 
 const trackLanes = document.getElementById("trackLanes");
 const trackWrap = document.getElementById("trackWrap");
+const trackScroll = document.getElementById("trackScroll");
 const confettiLayer = document.getElementById("confettiLayer");
 const countdownOverlay = document.getElementById("countdownOverlay");
 const bossBanner = document.getElementById("bossBanner");
@@ -385,12 +385,12 @@ function createTrack() {
   }
 }
 
-function getVisibleFinishPos() {
-  return trackWrap.scrollWidth - 130;
+function getFinishPos() {
+  return FIXED_RACE_DISTANCE;
 }
 
-function getFinishPos() {
-  return getVisibleFinishPos() * TRACK_LENGTH_MULTIPLIER;
+function getVisibleFinishPos() {
+  return trackWrap.scrollWidth - 130;
 }
 
 function getRaceTick() {
@@ -398,6 +398,7 @@ function getRaceTick() {
 }
 
 function speedMultiplier() {
+  if (gameData.speedMode === "slow") return 0.8;
   if (gameData.speedMode === "fast") return 1.25;
   if (gameData.speedMode === "crazy") return 1.6;
   return 1;
@@ -484,7 +485,7 @@ function renderQuests() {
 
 window.claimQuestReward = function (id) {
   const quest = gameData.dailyQuests.find(q => q.id === id);
-  if (!quest || quest.claimed || quest.progress < quest.goal) return;
+  if (!quest || quest.claimed || quest.progress < q.goal) return;
 
   quest.claimed = true;
   gameData.coins += quest.reward;
@@ -701,6 +702,7 @@ function resetAllData() {
   };
 
   ensureDailySystems();
+  playerNameInput.value = "";
   updateUI();
   renderHistory();
   renderQuests();
@@ -708,7 +710,6 @@ function resetAllData() {
   renderInventory();
   renderAchievements();
   renderSeasonBoard();
-  playerNameInput.value = "";
   createTrack();
   saveGame();
   setStatus("Đã xóa toàn bộ dữ liệu game.");
@@ -844,6 +845,12 @@ function raceStep() {
     }
   });
 
+  const playerDuck = ducks.find(d => d.playerDuck);
+  if (playerDuck && trackScroll) {
+    const target = Math.max(0, playerDuck.el.offsetLeft - 120);
+    trackScroll.scrollLeft = target;
+  }
+
   if (ranking.length === ducks.length) {
     finishRace();
   }
@@ -884,6 +891,10 @@ function startActualRace() {
     d.el.classList.remove("winner");
   });
 
+  if (trackScroll) {
+    trackScroll.scrollLeft = 0;
+  }
+
   setStatus(`🚀 Cuộc đua bắt đầu ở ${gameData.fpsMode} FPS!`);
   animationId = requestAnimationFrame(raceLoop);
 }
@@ -912,6 +923,9 @@ function resetRace() {
   raceRunning = false;
   ranking = [];
   createTrack();
+  if (trackScroll) {
+    trackScroll.scrollLeft = 0;
+  }
   setStatus("Đã reset đường đua.");
   startRaceBtn.disabled = false;
 }
@@ -1100,8 +1114,8 @@ function init() {
   });
 
   window.addEventListener("resize", () => {
-    const visibleFinish = getVisibleFinishPos();
     const finishPos = getFinishPos();
+    const visibleFinish = getVisibleFinishPos();
 
     ducks.forEach(duck => {
       const visiblePos = Math.min((duck.pos / finishPos) * visibleFinish, visibleFinish);
