@@ -11,6 +11,15 @@ const SKINS = [
 ];
 
 const AI_ICONS = ["🦆", "🐥", "🐤", "🪿", "🐣", "🦆", "🐤", "🪿"];
+const DUCK_NAMES = [
+  "Vịt Sấm Sét",
+  "Vịt Thần Tốc",
+  "Vịt Lửa",
+  "Vịt Hoàng Gia",
+  "Vịt Cầu Vồng",
+  "Vịt Băng",
+  "Vịt Boss"
+];
 const SEASON_RANKS = [
   { min: 0, name: "Đồng" },
   { min: 300, name: "Bạc" },
