@@ -30,53 +30,54 @@
       </div>
     </header>
 
-    <section class="mobile-home glass">
-      <div class="home-top">
-        <div class="home-profile-card" id="openProfileBtn">
-          <div class="home-profile-title">👤 Hồ sơ</div>
-          <div class="home-profile-name" id="playerNameDisplay">Người chơi</div>
-          <div class="home-profile-meta">
-            <span>Level <strong id="profileLevelText">1</strong></span>
-            <span>EXP <strong id="expText">0 / 100</strong></span>
-          </div>
-          <div class="exp-wrap compact">
-            <div class="exp-bar">
-              <div class="exp-fill" id="expFill"></div>
-            </div>
-          </div>
-        </div>
+    <section class="mobile-home sketch-layout glass">
+  <button class="sketch-card profile-mini" id="openProfileBtn">
+    <span class="sketch-icon">👤</span>
+    <span>Hồ sơ</span>
+  </button>
 
-        <button class="home-tile settings-tile" id="openSettingsBtn">⚙️ Cài đặt</button>
-      </div>
+  <button class="sketch-card settings-box" id="openSettingsBtn">
+    <span class="sketch-icon">⚙️</span>
+    <span>Cài đặt</span>
+  </button>
 
-      <div class="home-grid">
-        <button class="home-card" id="openHistoryBtn">
-          <span class="home-card-icon">🧾</span>
-          <span>Hoạt động gần đây</span>
-        </button>
+  <button class="sketch-card history-box" id="openHistoryBtn">
+    <span class="sketch-icon">🧾</span>
+    <span>Hoạt động gần đây</span>
+  </button>
 
-        <button class="home-card large" id="openRaceBtn">
-          <span class="home-card-icon">🏁</span>
-          <span>Vào đường đua</span>
-        </button>
+  <button class="sketch-card race-box" id="openRaceBtn">
+    <span class="sketch-icon">🏁</span>
+    <span>Vào đường đua</span>
+  </button>
 
-        <button class="home-card" id="openSeasonBtn">
-          <span class="home-card-icon">👑</span>
-          <span>BXH mùa</span>
-        </button>
+  <button class="sketch-card season-box" id="openSeasonBtn">
+    <span class="sketch-icon">👑</span>
+    <span>BXH mùa</span>
+  </button>
 
-        <button class="home-card" id="openQuestBtn">
-          <span class="home-card-icon">📋</span>
-          <span>Nhiệm vụ hằng ngày</span>
-        </button>
-      </div>
+  <button class="sketch-card quest-box" id="openQuestBtn">
+    <span class="sketch-icon">📋</span>
+    <span>Nhiệm vụ hằng ngày</span>
+  </button>
 
-      <div class="bottom-nav">
-        <button class="nav-btn" id="openSpinBtn">🎡 Vòng quay</button>
-        <button class="nav-btn" id="openShopBtn">🛒 Shop</button>
-        <button class="nav-btn" id="openInventoryBtn">🎒 Kho đồ</button>
-      </div>
-    </section>
+  <div class="sketch-bottom-nav">
+    <button class="bottom-item" id="openSpinBtn">
+      <span class="sketch-icon">🎡</span>
+      <span>Vòng quay</span>
+    </button>
+
+    <button class="bottom-item" id="openProfileBtnBottom">
+      <span class="sketch-icon">👤</span>
+      <span>Hồ sơ</span>
+    </button>
+
+    <button class="bottom-item" id="openInventoryBtn">
+      <span class="sketch-icon">🎒</span>
+      <span>Kho đồ</span>
+    </button>
+  </div>
+</section>
 
     <section class="race-panel glass hidden-panel" id="raceSection">
       <div class="race-top">
