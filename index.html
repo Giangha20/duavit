@@ -6,7 +6,7 @@
   <title>Duck Race Luxury</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body class="theme-default">
   <div class="bg-layer">
     <div class="cloud cloud-1"></div>
     <div class="cloud cloud-2"></div>
@@ -16,10 +16,14 @@
   <div class="app-shell">
     <header class="topbar glass">
       <div class="brand">
-        <div class="brand-icon">🦆🇻🇳</div>
+        <div class="brand-icon avatar-top-brand">
+          <div class="avatar-frame-wrap frame-common" id="topAvatarFrame">
+            <img id="playerAvatarTop" class="round-avatar" src="" alt="Avatar">
+          </div>
+        </div>
         <div>
           <h1>Duck Race Luxury</h1>
-          <p>Game đua vịt dành cho dân chơi</p>
+          <p>Game đua vịt siêu đẹp siêu mượt</p>
         </div>
       </div>
 
@@ -31,53 +35,63 @@
     </header>
 
     <section class="mobile-home sketch-layout glass">
-  <button class="sketch-card profile-mini" id="openProfileBtn">
-    <span class="sketch-icon">👤</span>
-    <span>Hồ sơ</span>
-  </button>
+      <button class="sketch-card avatar-card" id="openProfileBtn">
+        <div class="avatar-frame-wrap frame-common" id="homeAvatarFrame">
+          <img id="playerAvatarHome" class="round-avatar" src="" alt="Avatar">
+        </div>
+        <span class="avatar-card-label">Avatar</span>
+      </button>
 
-  <button class="sketch-card settings-box" id="openSettingsBtn">
-    <span class="sketch-icon">⚙️</span>
-    <span>Cài đặt</span>
-  </button>
+      <button class="sketch-card settings-mini" id="openSettingsBtn" aria-label="Cài đặt">
+        <span class="sketch-icon">⚙️</span>
+      </button>
 
-  <button class="sketch-card history-box" id="openHistoryBtn">
-    <span class="sketch-icon">🧾</span>
-    <span>Hoạt động gần đây</span>
-  </button>
+      <div class="duck-title-box">
+        <div class="duck-title-main">DUCK RACE</div>
+        <div class="duck-title-sub">Luxury</div>
+      </div>
 
-  <button class="sketch-card race-box" id="openRaceBtn">
-    <span class="sketch-icon">🏁</span>
-    <span>Vào đường đua</span>
-  </button>
+      <button class="sketch-card history-mid-box" id="openHistoryBtn">
+        <span class="sketch-icon">🧾</span>
+        <span>Hoạt động gần đây</span>
+      </button>
 
-  <button class="sketch-card season-box" id="openSeasonBtn">
-    <span class="sketch-icon">👑</span>
-    <span>BXH mùa</span>
-  </button>
+      <button class="sketch-card season-top-box" id="openSeasonBtn">
+        <span class="sketch-icon">👑</span>
+        <span>BXH mùa</span>
+      </button>
 
-  <button class="sketch-card quest-box" id="openQuestBtn">
-    <span class="sketch-icon">📋</span>
-    <span>Nhiệm vụ hằng ngày</span>
-  </button>
+      <button class="sketch-card inventory-mini-box" id="openInventoryBtn" aria-label="Kho đồ">
+        <span class="sketch-icon">🎒</span>
+      </button>
 
-  <div class="sketch-bottom-nav">
-    <button class="bottom-item" id="openSpinBtn">
-      <span class="sketch-icon">🎡</span>
-      <span>Vòng quay</span>
-    </button>
+      <button class="sketch-card shop-left-box" id="openShopBtn">
+        <span class="sketch-icon">🛒</span>
+        <span>Shop</span>
+      </button>
 
-    <button class="bottom-item" id="openProfileBtnBottom">
-      <span class="sketch-icon">👤</span>
-      <span>Hồ sơ</span>
-    </button>
+      <button class="sketch-card quest-right-box" id="openQuestBtn">
+        <span class="sketch-icon">📋</span>
+        <span>Nhiệm vụ hằng ngày</span>
+      </button>
 
-    <button class="bottom-item" id="openInventoryBtn">
-      <span class="sketch-icon">🎒</span>
-      <span>Kho đồ</span>
-    </button>
-  </div>
-</section>
+      <div class="sketch-bottom-nav">
+        <button class="bottom-item" id="openSpinBtn">
+          <span class="sketch-icon">🎡</span>
+          <span>Vòng quay</span>
+        </button>
+
+        <button class="bottom-item race-main-btn" id="openRaceBtn">
+          <span class="sketch-icon">🏁</span>
+          <span>Vào đường đua</span>
+        </button>
+
+        <button class="bottom-item" id="openProfileBtnBottom">
+          <span class="sketch-icon">👤</span>
+          <span>Hồ sơ</span>
+        </button>
+      </div>
+    </section>
 
     <section class="race-panel glass hidden-panel" id="raceSection">
       <div class="race-top">
@@ -86,10 +100,10 @@
           <p class="muted">Chọn vịt, skin, tốc độ rồi bắt đầu</p>
         </div>
         <div class="race-badges">
-          <span class="badge">🥇 +100</span>
-          <span class="badge">🥈 +50</span>
-          <span class="badge">🥉 +25</span>
-          <span class="badge">🏅 +10</span>
+          <span class="badge">🥇 +100 xu</span>
+          <span class="badge">🥈 +50 xu</span>
+          <span class="badge">🥉 +25 xu</span>
+          <span class="badge">🏅 +10 xu</span>
         </div>
       </div>
 
@@ -161,6 +175,11 @@
       </div>
       <div class="modal-body">
         <div id="shopGrid" class="shop-grid"></div>
+        <div class="modal-divider"></div>
+        <div class="modal-head small-head">
+          <h2>🖼️ Shop khung avatar</h2>
+        </div>
+        <div id="avatarFrameGrid" class="avatar-frame-grid"></div>
       </div>
     </div>
   </div>
@@ -184,10 +203,15 @@
         <button class="close-btn" data-close="spinModal">✕</button>
       </div>
       <div class="modal-body center-body">
+        <div class="spin-only-top1-note" id="spinOnlyTop1Note">
+          Chỉ top 1 mới được quay vòng quay.
+        </div>
+
         <div class="spin-pointer">▼</div>
         <div class="wheel-frame">
           <div class="wheel-core" id="wheelCore">🎁</div>
         </div>
+
         <div class="spin-reward-list">
           <div>30 xu</div>
           <div>50 xu</div>
@@ -196,8 +220,9 @@
           <div>Skin Rainbow</div>
           <div>Vật phẩm hiếm</div>
         </div>
+
         <button class="main-btn" id="spinOnceBtn">🎡 Quay ngay</button>
-        <div class="muted spin-note">Quà sẽ được nhận tự động ngay sau khi quay.</div>
+        <div class="muted spin-note">Muốn quay, bạn phải về top 1 trong trận gần nhất.</div>
       </div>
     </div>
   </div>
@@ -228,7 +253,7 @@
           </div>
 
           <div class="input-group">
-            <label for="bgThemeSelect">Hình nền</label>
+            <label for="bgThemeSelect">Màu nền game</label>
             <select id="bgThemeSelect">
               <option value="theme-default">Mặc định</option>
               <option value="theme-sunset">Hoàng hôn</option>
@@ -249,8 +274,15 @@
 
           <div class="action-row tight">
             <button class="main-btn" id="saveSettingsBtn">💾 Lưu cài đặt</button>
-            <button class="main-btn danger-btn" id="resetDataBtn">🗑 Xóa dữ liệu</button>
+            <button class="main-btn danger-btn" id="resetRankBtn">🔄 Reset rank</button>
           </div>
+
+          <div class="action-row tight">
+            <button class="main-btn danger-btn" id="resetDataBtn">🗑 Xóa dữ liệu</button>
+            <button class="main-btn alt" id="openAvatarPickerBtn">📸 Đổi avatar</button>
+          </div>
+
+          <input type="file" id="avatarInput" accept="image/*" hidden>
         </div>
       </div>
     </div>
@@ -282,9 +314,10 @@
           </div>
           <div class="profile-item">
             <span>Hạng hiện tại</span>
-            <strong id="seasonRankText">Đồng</strong>
+            <strong id="seasonRankText">Đồng V</strong>
           </div>
         </div>
+        <div class="reset-note">Reset BXH mùa sau: <span id="seasonResetNote">7 ngày</span></div>
         <div id="seasonBoard" class="season-board"></div>
       </div>
     </div>
@@ -320,12 +353,28 @@
         <h2>👤 Hồ sơ người chơi</h2>
         <button class="close-btn" data-close="profileModal">✕</button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body center-body">
+        <div class="profile-avatar-box">
+          <div class="avatar-frame-wrap frame-common" id="profileAvatarFrame">
+            <img id="playerAvatarProfile" class="round-avatar" src="" alt="Avatar">
+          </div>
+        </div>
+
+        <div class="profile-rank-box">
+          <div><strong id="profileRankText">Đồng V</strong></div>
+          <div id="profileRankPointsText">0 RP</div>
+        </div>
+
         <div class="profile-stats popup-profile-stats">
           <div class="stat-box"><span>Tỉ lệ top 1</span><strong id="popupWinRateText">0%</strong></div>
           <div class="stat-box"><span>Top 1</span><strong id="popupWinsText">0</strong></div>
           <div class="stat-box"><span>Không top 1</span><strong id="popupLossesText">0</strong></div>
           <div class="stat-box"><span>Tổng lời</span><strong id="popupProfitText">0</strong></div>
+        </div>
+
+        <div class="action-row tight">
+          <button class="main-btn alt" id="openAvatarPickerBtnProfile">📸 Đổi avatar</button>
+          <button class="main-btn" id="openAvatarFrameShopBtn">🖼️ Khung avatar</button>
         </div>
       </div>
     </div>
@@ -361,13 +410,26 @@
     </div>
   </div>
 
-  <script src="script.js"></script>
-  <div id="spinRewardToast" class="spin-reward-toast hidden">
-  <div class="spin-reward-box">
-    <div id="spinRewardIcon" class="spin-reward-icon">🎉</div>
-    <div id="spinRewardTitle" class="spin-reward-title">Bạn đã trúng!</div>
-    <div id="spinRewardText" class="spin-reward-text">Phần thưởng</div>
+  <div class="modal-backdrop hidden" id="avatarFrameModal">
+    <div class="modal glass modal-narrow">
+      <div class="modal-head">
+        <h2>🖼️ Khung avatar</h2>
+        <button class="close-btn" data-close="avatarFrameModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="avatarFrameGrid" class="avatar-frame-grid"></div>
+      </div>
+    </div>
   </div>
-</div>
+
+  <div class="spin-reward-toast hidden" id="spinRewardToast">
+    <div class="spin-reward-box">
+      <div id="spinRewardIcon" class="spin-reward-icon">🎉</div>
+      <div id="spinRewardTitle" class="spin-reward-title">Bạn đã trúng!</div>
+      <div id="spinRewardText" class="spin-reward-text">Phần thưởng</div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
