@@ -52,7 +52,7 @@ const SEASON_RANKS = [
   { min: 2700, name: "Cao Thủ III" },
   { min: 2800, name: "Cao Thủ II" },
   { min: 2900, name: "Cao Thủ I" },
-  { min: 3000, name: "Chí Tôn" },
+  { min: 3000, name: "Quán Quân" }
 ];
 
 const DAILY_QUESTS_TEMPLATE = [
@@ -78,6 +78,16 @@ const SPIN_REWARDS = [
   { type: "skin", value: "legend", label: "Vật phẩm hiếm" }
 ];
 
+const AVATAR_FRAMES = [
+  { id: "common", name: "Khung thường", price: 0, className: "frame-common" },
+  { id: "silver", name: "Khung bạc", price: 120, className: "frame-silver" },
+  { id: "gold", name: "Khung vàng", price: 260, className: "frame-gold" },
+  { id: "diamond", name: "Khung kim cương", price: 480, className: "frame-diamond" },
+  { id: "fire", name: "Khung lửa", price: 680, className: "frame-fire" },
+  { id: "neon", name: "Khung neon", price: 900, className: "frame-neon" }
+];
+
+const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23ffe29a'/%3E%3Ctext x='50' y='58' text-anchor='middle' font-size='42'%3E🦆%3C/text%3E%3C/svg%3E";
 const FIXED_RACE_DISTANCE = 1800;
 
 const playerNameInput = document.getElementById("playerNameInput");
@@ -95,10 +105,6 @@ const shakeToggleBtn = document.getElementById("shakeToggleBtn");
 const coinsText = document.getElementById("coinsText");
 const levelText = document.getElementById("levelText");
 const streakText = document.getElementById("streakText");
-const playerNameDisplay = document.getElementById("playerNameDisplay");
-const profileLevelText = document.getElementById("profileLevelText");
-const expText = document.getElementById("expText");
-const expFill = document.getElementById("expFill");
 const popupWinRateText = document.getElementById("popupWinRateText");
 const popupWinsText = document.getElementById("popupWinsText");
 const popupLossesText = document.getElementById("popupLossesText");
@@ -120,6 +126,7 @@ const achievementsGrid = document.getElementById("achievementsGrid");
 const seasonBoard = document.getElementById("seasonBoard");
 const seasonPointsText = document.getElementById("seasonPointsText");
 const seasonRankText = document.getElementById("seasonRankText");
+const seasonResetNote = document.getElementById("seasonResetNote");
 
 const resultTitle = document.getElementById("resultTitle");
 const resultReward = document.getElementById("resultReward");
@@ -151,8 +158,22 @@ const resetRaceBtn = document.getElementById("resetRaceBtn");
 const spinOnceBtn = document.getElementById("spinOnceBtn");
 const saveSettingsBtn = document.getElementById("saveSettingsBtn");
 const resetDataBtn = document.getElementById("resetDataBtn");
+const resetRankBtn = document.getElementById("resetRankBtn");
 
 const raceSection = document.getElementById("raceSection");
+const avatarInput = document.getElementById("avatarInput");
+const playerAvatarTop = document.getElementById("playerAvatarTop");
+const playerAvatarHome = document.getElementById("playerAvatarHome");
+const playerAvatarProfile = document.getElementById("playerAvatarProfile");
+const profileRankText = document.getElementById("profileRankText");
+const profileRankPointsText = document.getElementById("profileRankPointsText");
+const homeAvatarFrame = document.getElementById("homeAvatarFrame");
+const topAvatarFrame = document.getElementById("topAvatarFrame");
+const profileAvatarFrame = document.getElementById("profileAvatarFrame");
+const avatarFrameGrid = document.getElementById("avatarFrameGrid");
+const openAvatarPickerBtn = document.getElementById("openAvatarPickerBtn");
+const openAvatarPickerBtnProfile = document.getElementById("openAvatarPickerBtnProfile");
+const openAvatarFrameShopBtn = document.getElementById("openAvatarFrameShopBtn");
 
 let ducks = [];
 let ranking = [];
@@ -163,11 +184,6 @@ let accumulator = 0;
 let spinCooldown = false;
 let selectedPreviewSkinId = null;
 let bossDuckId = null;
-
-let spinRewardToast = null;
-let spinRewardIcon = null;
-let spinRewardTitle = null;
-let spinRewardText = null;
 
 let gameData = {
   playerName: "Người chơi",
@@ -187,11 +203,13 @@ let gameData = {
   bgTheme: "theme-default",
   effectsEnabled: true,
   shakeEnabled: true,
-  dailyClaimDate: "",
   questsDate: "",
   dailyQuests: [],
-  spinCount: 0,
-  seasonPoints: 0
+  seasonPoints: 0,
+  weeklyResetAt: 0,
+  avatar: DEFAULT_AVATAR,
+  ownedAvatarFrames: ["common"],
+  equippedAvatarFrame: "common"
 };
 
 function todayKey() {
@@ -206,7 +224,6 @@ function saveGame() {
 function loadGame() {
   const raw = localStorage.getItem("duckRaceMainScreenData");
   if (!raw) return;
-
   try {
     const parsed = JSON.parse(raw);
     gameData = {
@@ -214,7 +231,8 @@ function loadGame() {
       ...parsed,
       ownedSkins: Array.isArray(parsed.ownedSkins) && parsed.ownedSkins.length ? parsed.ownedSkins : ["classic"],
       history: Array.isArray(parsed.history) ? parsed.history : [],
-      dailyQuests: Array.isArray(parsed.dailyQuests) ? parsed.dailyQuests : []
+      dailyQuests: Array.isArray(parsed.dailyQuests) ? parsed.dailyQuests : [],
+      ownedAvatarFrames: Array.isArray(parsed.ownedAvatarFrames) && parsed.ownedAvatarFrames.length ? parsed.ownedAvatarFrames : ["common"]
     };
   } catch (err) {
     console.log("Lỗi load save:", err);
@@ -229,6 +247,35 @@ function ensureDailySystems() {
   }
 }
 
+function ensureWeeklyReset() {
+  const now = Date.now();
+  const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+  if (!gameData.weeklyResetAt) {
+    gameData.weeklyResetAt = now + WEEK_MS;
+    return;
+  }
+  if (now >= gameData.weeklyResetAt) {
+    gameData.seasonPoints = 0;
+    gameData.winStreak = 0;
+    gameData.history = [];
+    gameData.dailyQuests = JSON.parse(JSON.stringify(DAILY_QUESTS_TEMPLATE));
+    gameData.questsDate = todayKey();
+    gameData.weeklyResetAt = now + WEEK_MS;
+    saveGame();
+    setStatus("🔄 BXH mùa đã reset tuần mới.");
+  }
+}
+
+function formatResetCountdown() {
+  if (!gameData.weeklyResetAt) return "7 ngày";
+  const diff = Math.max(0, gameData.weeklyResetAt - Date.now());
+  const totalSec = Math.floor(diff / 1000);
+  const days = Math.floor(totalSec / 86400);
+  const hours = Math.floor((totalSec % 86400) / 3600);
+  const mins = Math.floor((totalSec % 3600) / 60);
+  return `${days} ngày ${hours} giờ ${mins} phút`;
+}
+
 function applyTheme(theme) {
   document.body.classList.remove("theme-default", "theme-sunset", "theme-night", "theme-candy");
   document.body.classList.add(theme || "theme-default");
@@ -236,10 +283,6 @@ function applyTheme(theme) {
 
 function getLevel() {
   return Math.floor(gameData.exp / 100) + 1;
-}
-
-function getExpCurrent() {
-  return gameData.exp % 100;
 }
 
 function getSeasonRank(points) {
@@ -254,7 +297,6 @@ function addExp(amount) {
   const before = getLevel();
   gameData.exp += amount;
   const after = getLevel();
-
   if (after > before) {
     const reward = (after - before) * 100;
     gameData.coins += reward;
@@ -264,6 +306,10 @@ function addExp(amount) {
 
 function getSkinById(id) {
   return SKINS.find(s => s.id === id) || SKINS[0];
+}
+
+function getAvatarFrameById(id) {
+  return AVATAR_FRAMES.find(f => f.id === id) || AVATAR_FRAMES[0];
 }
 
 function rarityLabel(rarity) {
@@ -278,89 +324,6 @@ function rarityClass(rarity) {
   if (rarity === "epic") return "epic";
   if (rarity === "rare") return "rare";
   return "";
-}
-
-function ensureSpinRewardPopup() {
-  if (document.getElementById("spinRewardToast")) {
-    spinRewardToast = document.getElementById("spinRewardToast");
-    spinRewardIcon = document.getElementById("spinRewardIcon");
-    spinRewardTitle = document.getElementById("spinRewardTitle");
-    spinRewardText = document.getElementById("spinRewardText");
-    return;
-  }
-
-  const style = document.createElement("style");
-  style.textContent = `
-    .spin-reward-toast {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      display: grid;
-      place-items: center;
-      background: rgba(0, 0, 0, 0.35);
-      padding: 20px;
-    }
-    .spin-reward-box {
-      width: min(420px, 92vw);
-      background: linear-gradient(135deg, #fff8e7, #ffffff);
-      border: 3px solid #ffd166;
-      border-radius: 24px;
-      padding: 24px 18px;
-      text-align: center;
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
-      animation: rewardPop 0.35s ease;
-    }
-    .spin-reward-icon {
-      font-size: 64px;
-      margin-bottom: 10px;
-    }
-    .spin-reward-title {
-      font-size: 1.4rem;
-      font-weight: bold;
-      color: #ff8a00;
-      margin-bottom: 8px;
-    }
-    .spin-reward-text {
-      font-size: 1.05rem;
-      font-weight: bold;
-      color: #203041;
-    }
-    @keyframes rewardPop {
-      0% { transform: scale(0.75); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-  `;
-  document.head.appendChild(style);
-
-  const wrapper = document.createElement("div");
-  wrapper.id = "spinRewardToast";
-  wrapper.className = "spin-reward-toast hidden";
-  wrapper.innerHTML = `
-    <div class="spin-reward-box">
-      <div id="spinRewardIcon" class="spin-reward-icon">🎉</div>
-      <div id="spinRewardTitle" class="spin-reward-title">Bạn đã trúng!</div>
-      <div id="spinRewardText" class="spin-reward-text">Phần thưởng</div>
-    </div>
-  `;
-  document.body.appendChild(wrapper);
-
-  spinRewardToast = document.getElementById("spinRewardToast");
-  spinRewardIcon = document.getElementById("spinRewardIcon");
-  spinRewardTitle = document.getElementById("spinRewardTitle");
-  spinRewardText = document.getElementById("spinRewardText");
-}
-
-function showSpinRewardPopup(icon, title, text) {
-  if (!spinRewardToast) return;
-
-  spinRewardIcon.textContent = icon;
-  spinRewardTitle.textContent = title;
-  spinRewardText.textContent = text;
-  spinRewardToast.classList.remove("hidden");
-
-  setTimeout(() => {
-    spinRewardToast.classList.add("hidden");
-  }, 2200);
 }
 
 function speakBeep(freq = 500, duration = 100, type = "square", volume = 0.03) {
@@ -400,23 +363,91 @@ function setStatus(message) {
   if (statusText) statusText.textContent = message;
 }
 
+function applyAvatar() {
+  const src = gameData.avatar || DEFAULT_AVATAR;
+  if (playerAvatarTop) playerAvatarTop.src = src;
+  if (playerAvatarHome) playerAvatarHome.src = src;
+  if (playerAvatarProfile) playerAvatarProfile.src = src;
+}
+
+function applyAvatarFrame() {
+  const frame = getAvatarFrameById(gameData.equippedAvatarFrame);
+  if (homeAvatarFrame) homeAvatarFrame.className = `avatar-frame-wrap ${frame.className}`;
+  if (topAvatarFrame) topAvatarFrame.className = `avatar-frame-wrap ${frame.className}`;
+  if (profileAvatarFrame) profileAvatarFrame.className = `avatar-frame-wrap ${frame.className}`;
+}
+
+function showRankUpPopup(oldRank, newRank) {
+  const popup = document.createElement("div");
+  popup.className = "rank-up-popup";
+  popup.innerHTML = `
+    <div class="rank-up-card">
+      <h3>🎉 Chúc mừng!</h3>
+      <p>Bạn đã lên từ ${oldRank} → ${newRank}</p>
+    </div>
+  `;
+  document.body.appendChild(popup);
+  setTimeout(() => popup.remove(), 2200);
+}
+
+function showRankPointFx(amount) {
+  const layer = document.createElement("div");
+  layer.className = "rank-points-layer";
+  const el = document.createElement("div");
+  el.className = "rank-point-fx";
+  el.textContent = `${amount > 0 ? "+" : ""}${amount} RP`;
+  el.style.left = `${46 + Math.random() * 8}%`;
+  el.style.top = `${46 + Math.random() * 6}%`;
+  layer.appendChild(el);
+  document.body.appendChild(layer);
+  setTimeout(() => layer.remove(), 1100);
+}
+
+function addSeasonPointsByPlace(place) {
+  let delta = 0;
+  if (place === 1) delta = 20;
+  else if (place === 2) delta = 15;
+  else if (place === 3) delta = 10;
+  else if (place === 4) delta = -5;
+  else if (place === 5) delta = -10;
+  else if (place === 6) delta = -15;
+  else delta = -20;
+
+  const oldPoints = gameData.seasonPoints;
+  const oldRank = getSeasonRank(oldPoints);
+  gameData.seasonPoints = Math.max(0, gameData.seasonPoints + delta);
+  const newRank = getSeasonRank(gameData.seasonPoints);
+
+  showRankPointFx(delta);
+
+  if (newRank !== oldRank) {
+    showRankUpPopup(oldRank, newRank);
+    speakBeep(950, 140, "triangle", 0.05);
+    setTimeout(() => speakBeep(1200, 180, "triangle", 0.05), 170);
+  }
+
+  return delta;
+}
+
 function updateUI() {
   const level = getLevel();
-  const currentExp = getExpCurrent();
   const winRate = gameData.totalRaces === 0 ? 0 : Math.round((gameData.wins / gameData.totalRaces) * 100);
+  const rankName = getSeasonRank(gameData.seasonPoints);
 
   if (coinsText) coinsText.textContent = gameData.coins;
   if (levelText) levelText.textContent = level;
   if (streakText) streakText.textContent = gameData.winStreak;
-  if (playerNameDisplay) playerNameDisplay.textContent = gameData.playerName || "Người chơi";
-  if (profileLevelText) profileLevelText.textContent = level;
-  if (expText) expText.textContent = `${currentExp} / 100`;
-  if (expFill) expFill.style.width = `${currentExp}%`;
 
   if (popupWinRateText) popupWinRateText.textContent = `${winRate}%`;
   if (popupWinsText) popupWinsText.textContent = gameData.wins;
   if (popupLossesText) popupLossesText.textContent = gameData.losses;
   if (popupProfitText) popupProfitText.textContent = gameData.profit >= 0 ? `+${gameData.profit}` : `${gameData.profit}`;
+
+  if (seasonPointsText) seasonPointsText.textContent = gameData.seasonPoints;
+  if (seasonRankText) seasonRankText.textContent = rankName;
+  if (profileRankText) profileRankText.textContent = rankName;
+  if (profileRankPointsText) profileRankPointsText.textContent = `${gameData.seasonPoints} RP`;
+  if (seasonResetNote) seasonResetNote.textContent = formatResetCountdown();
 
   if (fpsModeSelect) fpsModeSelect.value = gameData.fpsMode;
   if (speedModeSelect) speedModeSelect.value = gameData.speedMode;
@@ -426,19 +457,16 @@ function updateUI() {
   if (effectsToggleBtn) effectsToggleBtn.textContent = gameData.effectsEnabled ? "Bật" : "Tắt";
   if (shakeToggleBtn) shakeToggleBtn.textContent = gameData.shakeEnabled ? "Bật" : "Tắt";
 
-  if (seasonPointsText) seasonPointsText.textContent = gameData.seasonPoints;
-  if (seasonRankText) seasonRankText.textContent = getSeasonRank(gameData.seasonPoints);
-
   applyTheme(gameData.bgTheme || "theme-default");
+  applyAvatar();
+  applyAvatarFrame();
 }
 
 function populateDuckOptions() {
   if (!betDuckSelect || !duckCountSelect) return;
-
   const count = Number(duckCountSelect.value);
   const oldValue = betDuckSelect.value;
   betDuckSelect.innerHTML = "";
-
   for (let i = 0; i < count; i++) {
     const duckName = DUCK_NAMES[i] || `Vịt ${i + 1}`;
     const option = document.createElement("option");
@@ -446,10 +474,7 @@ function populateDuckOptions() {
     option.textContent = duckName;
     betDuckSelect.appendChild(option);
   }
-
-  if (oldValue && Number(oldValue) < count) {
-    betDuckSelect.value = oldValue;
-  }
+  if (oldValue && Number(oldValue) < count) betDuckSelect.value = oldValue;
 }
 
 function createTrack() {
@@ -486,21 +511,16 @@ function createTrack() {
 
     duck.textContent = icon;
 
-    if (playerDuck && (equippedSkin.rarity === "epic" || equippedSkin.rarity === "legendary")) {
-      duck.classList.add("rare");
-    }
-    if (i === bossDuckId) {
-      duck.classList.add("rare");
-    }
-
-    lane.appendChild(label);
-    lane.appendChild(duck);
-    trackLanes.appendChild(lane);
+    if (playerDuck && (equippedSkin.rarity === "epic" || equippedSkin.rarity === "legendary")) duck.classList.add("rare");
+    if (i === bossDuckId) duck.classList.add("rare");
 
     const basePower = 0.9 + Math.random() * 0.35;
-    const sprintChance = 0.10 + Math.random() * 0.14;
-    const sprintPower = 1.8 + Math.random() * 2.5;
-    const stability = 0.85 + Math.random() * 0.4;
+    const sprintChance = 0.08 + Math.random() * 0.15;
+    const sprintPower = 1.6 + Math.random() * 2.8;
+    const stability = 0.82 + Math.random() * 0.45;
+    const startBurstDuration = 70 + Math.floor(Math.random() * 90);
+    const startBurstPower = 0.8 + Math.random() * 2.6;
+    const startBurstType = Math.random();
 
     ducks.push({
       id: i,
@@ -514,8 +534,19 @@ function createTrack() {
       basePower: i === bossDuckId ? basePower + 0.12 : basePower,
       sprintChance: i === bossDuckId ? sprintChance + 0.03 : sprintChance,
       sprintPower: i === bossDuckId ? sprintPower + 0.5 : sprintPower,
-      stability: i === bossDuckId ? stability + 0.08 : stability
+      stability: i === bossDuckId ? stability + 0.08 : stability,
+      aiPhase: 0,
+      startBurstDuration,
+      startBurstPower: i === bossDuckId ? startBurstPower + 0.35 : startBurstPower,
+      startBurstType,
+      pacingSeed: Math.random() * 1000,
+      catchupSkill: 0.7 + Math.random() * 0.8,
+      fatiguePoint: 0.52 + Math.random() * 0.22
     });
+
+    lane.appendChild(label);
+    lane.appendChild(duck);
+    trackLanes.appendChild(lane);
   }
 }
 
@@ -542,7 +573,6 @@ function speedMultiplier() {
 
 function launchConfetti() {
   if (!gameData.effectsEnabled || !confettiLayer) return;
-
   confettiLayer.innerHTML = "";
   const colors = ["#ff4d6d", "#ffd166", "#06d6a0", "#118ab2", "#8338ec", "#ff9f1c"];
   const count = window.innerWidth <= 768 ? 16 : 42;
@@ -571,13 +601,11 @@ function spawnDust(duck) {
   dust.style.left = `${Math.max(0, duck.el.offsetLeft)}px`;
   dust.style.top = `${duck.el.offsetTop + 32}px`;
   trackWrap.appendChild(dust);
-
   setTimeout(() => dust.remove(), 380);
 }
 
 function renderHistory() {
   if (!historyList) return;
-
   if (!gameData.history.length) {
     historyList.innerHTML = `<div class="history-item">Chưa có hoạt động nào</div>`;
     return;
@@ -593,15 +621,12 @@ function renderHistory() {
 
 function addHistory(title, desc) {
   gameData.history.unshift({ title, desc, time: Date.now() });
-  if (gameData.history.length > 30) {
-    gameData.history = gameData.history.slice(0, 30);
-  }
+  if (gameData.history.length > 30) gameData.history = gameData.history.slice(0, 30);
   renderHistory();
 }
 
 function renderQuests() {
   if (!questsList) return;
-
   questsList.innerHTML = gameData.dailyQuests.map(q => {
     const percent = Math.min(100, Math.round((q.progress / q.goal) * 100));
     return `
@@ -626,7 +651,6 @@ function renderQuests() {
 window.claimQuestReward = function (id) {
   const quest = gameData.dailyQuests.find(q => q.id === id);
   if (!quest || quest.claimed || quest.progress < quest.goal) return;
-
   quest.claimed = true;
   gameData.coins += quest.reward;
   gameData.profit += quest.reward;
@@ -646,7 +670,6 @@ function incrementQuest(id, amount = 1) {
 
 function renderShop() {
   if (!shopGrid) return;
-
   const skins = SKINS.filter(s => s.from === "shop");
   shopGrid.innerHTML = skins.map(skin => {
     const owned = gameData.ownedSkins.includes(skin.id);
@@ -667,7 +690,6 @@ function renderShop() {
 
 function renderInventory() {
   if (!inventoryGrid) return;
-
   const skins = SKINS.filter(s => gameData.ownedSkins.includes(s.id));
   inventoryGrid.innerHTML = skins.map(skin => {
     const equipped = gameData.equippedSkin === skin.id;
@@ -678,6 +700,28 @@ function renderInventory() {
         <div class="skin-rarity">${rarityLabel(skin.rarity)}</div>
         <button class="card-btn ${equipped ? "gray" : "secondary"}" ${equipped ? "disabled" : ""} onclick="equipSkin('${skin.id}')">
           ${equipped ? "Đang dùng" : "Trang bị"}
+        </button>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderAvatarFrameShop() {
+  if (!avatarFrameGrid) return;
+  avatarFrameGrid.innerHTML = AVATAR_FRAMES.map(frame => {
+    const owned = gameData.ownedAvatarFrames.includes(frame.id);
+    const equipped = gameData.equippedAvatarFrame === frame.id;
+    return `
+      <div class="avatar-frame-item">
+        <div class="avatar-frame-preview avatar-frame-wrap ${frame.className}">
+          <img class="round-avatar" src="${gameData.avatar || DEFAULT_AVATAR}" alt="${frame.name}">
+        </div>
+        <div class="avatar-frame-name">${frame.name}</div>
+        <div class="avatar-frame-price">${frame.price === 0 ? "Miễn phí" : `${frame.price} xu`}</div>
+        <button class="card-btn ${equipped ? "gray" : owned ? "secondary" : ""}"
+          ${equipped ? "disabled" : ""}
+          onclick="${owned ? `equipAvatarFrame('${frame.id}')` : `buyAvatarFrame('${frame.id}')`}">
+          ${equipped ? "Đang dùng" : owned ? "Trang bị" : "Mua"}
         </button>
       </div>
     `;
@@ -705,15 +749,12 @@ window.buySkin = function (skinId) {
     setStatus("Không đủ xu để mua skin này.");
     return;
   }
-
   gameData.coins -= skin.price;
   gameData.profit -= skin.price;
   gameData.ownedSkins.push(skin.id);
-
   addHistory("🛒 Mua skin", `Đã mua skin ${skin.name}`);
   setStatus(`🛍️ Đã mua skin ${skin.name}.`);
   speakBeep(700, 120, "triangle", 0.04);
-
   updateUI();
   renderShop();
   renderInventory();
@@ -730,9 +771,35 @@ window.equipSkin = function (skinId) {
   saveGame();
 };
 
+window.buyAvatarFrame = function (frameId) {
+  const frame = getAvatarFrameById(frameId);
+  if (!frame || gameData.ownedAvatarFrames.includes(frame.id)) return;
+  if (gameData.coins < frame.price) {
+    setStatus("Không đủ xu để mua khung avatar.");
+    return;
+  }
+  gameData.coins -= frame.price;
+  gameData.profit -= frame.price;
+  gameData.ownedAvatarFrames.push(frame.id);
+  gameData.equippedAvatarFrame = frame.id;
+  applyAvatarFrame();
+  updateUI();
+  renderAvatarFrameShop();
+  saveGame();
+  setStatus(`🖼️ Đã mua ${frame.name}.`);
+};
+
+window.equipAvatarFrame = function (frameId) {
+  if (!gameData.ownedAvatarFrames.includes(frameId)) return;
+  gameData.equippedAvatarFrame = frameId;
+  applyAvatarFrame();
+  renderAvatarFrameShop();
+  saveGame();
+  setStatus(`✨ Đã trang bị ${getAvatarFrameById(frameId).name}.`);
+};
+
 function renderAchievements() {
   if (!achievementsGrid) return;
-
   achievementsGrid.innerHTML = ACHIEVEMENTS.map(a => {
     const unlocked = a.check(gameData);
     return `
@@ -746,14 +813,12 @@ function renderAchievements() {
 
 function renderSeasonBoard() {
   if (!seasonBoard) return;
-
   const playerPoints = gameData.seasonPoints;
   const playerName = gameData.playerName || "Bạn";
-
   const board = [
-    { name: "Duck Master", points: 2400 },
-    { name: "Golden Goose", points: 1900 },
-    { name: "Rainbow Rider", points: 1450 },
+    { name: "Duck Master", points: 3400 },
+    { name: "Golden Goose", points: 2900 },
+    { name: "Rainbow Rider", points: 2400 },
     { name: playerName, points: playerPoints },
     { name: "Tiny Quack", points: 520 },
     { name: "Lucky Wing", points: 310 }
@@ -772,12 +837,6 @@ function getRewardByPlace(place) {
   if (place === 2) return 50;
   if (place === 3) return 25;
   return 10;
-}
-
-function getSeasonPointsByPlace(place, bossDefeated) {
-  let base = place === 1 ? 80 : place === 2 ? 45 : place === 3 ? 20 : 8;
-  if (bossDefeated) base += 40;
-  return base;
 }
 
 function openModal(id) {
@@ -802,9 +861,9 @@ function hideRacePanel() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function showResultModal(playerPlace, reward) {
+function showResultModal(playerPlace, reward, rankDelta) {
   if (resultTitle) resultTitle.textContent = `Vịt bạn chọn về hạng ${playerPlace}!`;
-  if (resultReward) resultReward.textContent = `+${reward} xu`;
+  if (resultReward) resultReward.textContent = `${reward > 0 ? "+" : ""}${reward} xu | ${rankDelta > 0 ? "+" : ""}${rankDelta} RP`;
   if (resultRanking) {
     resultRanking.innerHTML = ranking.map((duck) => {
       const mark = duck.playerDuck ? "⭐ " : "";
@@ -835,14 +894,16 @@ function resetAllData() {
     bgTheme: "theme-default",
     effectsEnabled: true,
     shakeEnabled: true,
-    dailyClaimDate: "",
     questsDate: "",
     dailyQuests: [],
-    spinCount: 0,
-    seasonPoints: 0
+    seasonPoints: 0,
+    weeklyResetAt: 0,
+    avatar: DEFAULT_AVATAR,
+    ownedAvatarFrames: ["common"],
+    equippedAvatarFrame: "common"
   };
-
   ensureDailySystems();
+  ensureWeeklyReset();
   if (playerNameInput) playerNameInput.value = "";
   updateUI();
   renderHistory();
@@ -851,9 +912,19 @@ function resetAllData() {
   renderInventory();
   renderAchievements();
   renderSeasonBoard();
+  renderAvatarFrameShop();
   createTrack();
   saveGame();
   setStatus("Đã xóa toàn bộ dữ liệu game.");
+}
+
+function resetRankOnly() {
+  gameData.seasonPoints = 0;
+  gameData.weeklyResetAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
+  saveGame();
+  updateUI();
+  renderSeasonBoard();
+  setStatus("🔄 Đã reset rank mùa.");
 }
 
 function countdownSequence(callback) {
@@ -861,10 +932,8 @@ function countdownSequence(callback) {
     callback();
     return;
   }
-
   const steps = ["3", "2", "1", "GO!"];
   let i = 0;
-
   countdownOverlay.style.display = "grid";
 
   function next() {
@@ -876,7 +945,6 @@ function countdownSequence(callback) {
     }
     speakBeep(550 + i * 120, 120, "square", 0.03);
     i++;
-
     if (i < steps.length) {
       setTimeout(next, 650);
     } else {
@@ -893,7 +961,6 @@ function countdownSequence(callback) {
 function finishRace() {
   raceRunning = false;
   cancelAnimationFrame(animationId);
-
   ducks.forEach(d => d.el.classList.remove("running", "boosted"));
 
   const playerDuckId = Number(betDuckSelect?.value || 0);
@@ -901,79 +968,114 @@ function finishRace() {
   const reward = getRewardByPlace(playerPlace);
   const winner = ranking[0];
   const playerDuck = ducks.find(d => d.id === playerDuckId);
-  const bossPlace = ranking.findIndex(d => d.id === bossDuckId) + 1;
-  const bossDefeated = bossDuckId !== null && bossPlace > 0 && playerPlace < bossPlace;
 
   gameData.totalRaces += 1;
   gameData.coins += reward;
   gameData.profit += reward;
   addExp(playerPlace === 1 ? 30 : playerPlace === 2 ? 20 : 10);
 
-  const seasonAdd = getSeasonPointsByPlace(playerPlace, bossDefeated);
-  gameData.seasonPoints += seasonAdd;
+  const rankDelta = addSeasonPointsByPlace(playerPlace);
 
   if (playerPlace === 1) {
     gameData.wins += 1;
     gameData.winStreak += 1;
     gameData.bestStreak = Math.max(gameData.bestStreak, gameData.winStreak);
     incrementQuest("win1");
-    setStatus(`🎉 ${playerDuck.name} về nhất! Bạn nhận ${reward} xu!`);
+    setStatus(`🎉 ${playerDuck.name} về nhất! Bạn nhận ${reward} xu và ${rankDelta} RP!`);
     launchConfetti();
     playWinSound();
   } else {
     gameData.losses += 1;
     gameData.winStreak = 0;
-    setStatus(`🏁 ${playerDuck.name} về hạng ${playerPlace}! Bạn nhận ${reward} xu!`);
+    setStatus(`🏁 ${playerDuck.name} về hạng ${playerPlace}! ${rankDelta > 0 ? "Nhận" : "Bị trừ"} ${Math.abs(rankDelta)} RP.`);
     playLoseSound();
-  }
-
-  if (bossDuckId !== null && bossDefeated) {
-    gameData.coins += 40;
-    gameData.profit += 40;
-    addHistory("👑 Hạ boss vịt vàng", `Nhận thêm 40 xu và ${seasonAdd} điểm mùa`);
   }
 
   if (winner) winner.el.classList.add("winner");
 
   incrementQuest("play3");
-  addHistory("🏁 Kết thúc trận", `${playerDuck.icon} ${playerDuck.name} về hạng ${playerPlace}, nhận ${reward} xu`);
+  addHistory("🏁 Kết thúc trận", `${playerDuck.icon} ${playerDuck.name} về hạng ${playerPlace}, ${rankDelta > 0 ? "+" : ""}${rankDelta} RP`);
   updateUI();
   renderQuests();
   renderAchievements();
   renderSeasonBoard();
-  showResultModal(playerPlace, reward);
+  showResultModal(playerPlace, reward, rankDelta);
   saveGame();
 
   if (startRaceBtn) startRaceBtn.disabled = false;
   if (resetRaceBtn) resetRaceBtn.disabled = false;
 }
 
+function getAIMove(duck, finishPos, mult) {
+  duck.aiPhase += 1;
+  const progress = duck.pos / finishPos;
+  const placeNow = 1 + ducks.filter(d => d !== duck && d.pos > duck.pos).length;
+  const total = ducks.length || 1;
+  const behindRatio = (placeNow - 1) / Math.max(1, total - 1);
+
+  let step = (1.1 + Math.random() * 3.2) * duck.basePower * duck.stability;
+  let luckyBoost = false;
+
+  if (duck.aiPhase <= duck.startBurstDuration) {
+    const burstRemain = 1 - duck.aiPhase / duck.startBurstDuration;
+    let burstFactor = duck.startBurstPower * burstRemain;
+
+    if (duck.startBurstType < 0.33) {
+      burstFactor *= 1.15;
+    } else if (duck.startBurstType < 0.66) {
+      burstFactor *= 0.85 + Math.sin(duck.aiPhase * 0.12) * 0.35;
+    } else {
+      burstFactor *= 0.7 + burstRemain * 0.9;
+    }
+
+    step += Math.max(0, burstFactor);
+    luckyBoost = true;
+  }
+
+  const pacing = Math.sin((duck.aiPhase + duck.pacingSeed) * 0.09) * 0.42;
+  step += pacing;
+
+  if (progress > 0.18 && progress < duck.fatiguePoint) {
+    step += (Math.random() - 0.5) * 0.9;
+  }
+
+  if (progress >= 0.55 && behindRatio > 0.45) {
+    step += duck.catchupSkill * behindRatio * (0.8 + Math.random() * 1.6);
+  }
+
+  if (Math.random() < duck.sprintChance) {
+    step += duck.sprintPower * (0.7 + Math.random() * 0.7);
+    luckyBoost = true;
+  }
+
+  if (duck.isBoss) {
+    step += 0.3 + Math.random() * 0.5;
+  }
+
+  if (progress > 0.82) {
+    step += (0.4 + Math.random() * 1.2) * (1 - progress + 0.25);
+  }
+
+  step *= mult;
+  return { step: Math.max(0.6, step), luckyBoost };
+}
+
 function raceStep() {
-  const finishPos = getFinishPos();
-  const visibleFinish = getVisibleFinishPos();
+  const finishPos = FIXED_RACE_DISTANCE;
+  const visibleFinish = trackWrap ? trackWrap.scrollWidth - 130 : 1000;
   const mult = speedMultiplier();
 
   ducks.forEach((duck) => {
     if (duck.finished) return;
-
     duck.el.classList.remove("boosted");
-
-    const lucky = Math.random() < duck.sprintChance;
-    const randomVariance = 0.75 + Math.random() * 0.55;
-    const baseStep = ((1.2 + Math.random() * 3.8) * duck.basePower * duck.stability * randomVariance) * mult;
-    const bossBonus = duck.isBoss ? 0.35 * mult : 0;
-    const sprint = lucky ? duck.sprintPower * mult : 0;
-
-    duck.pos += baseStep + sprint + bossBonus;
-
-    if (lucky || duck.isBoss) duck.el.classList.add("boosted");
+    const move = getAIMove(duck, finishPos, mult);
+    duck.pos += move.step;
+    if (move.luckyBoost) duck.el.classList.add("boosted");
 
     const visiblePos = Math.min((duck.pos / finishPos) * visibleFinish, visibleFinish);
     duck.el.style.left = `${visiblePos}px`;
 
-    if (Math.random() < (window.innerWidth <= 768 ? 0.08 : 0.22)) {
-      spawnDust(duck);
-    }
+    if (Math.random() < (window.innerWidth <= 768 ? 0.08 : 0.22)) spawnDust(duck);
 
     if (duck.pos >= finishPos) {
       duck.pos = finishPos;
@@ -996,14 +1098,12 @@ function raceStep() {
 
 function raceLoop(timestamp) {
   if (!raceRunning) return;
-
   if (!lastFrameTime) lastFrameTime = timestamp;
   const delta = timestamp - lastFrameTime;
   lastFrameTime = timestamp;
   accumulator += delta;
 
   const tick = getRaceTick();
-
   while (accumulator >= tick) {
     raceStep();
     accumulator -= tick;
@@ -1022,22 +1122,20 @@ function startActualRace() {
   ducks.forEach(d => {
     d.pos = 18;
     d.finished = false;
+    d.aiPhase = 0;
     d.el.style.left = "18px";
     d.el.classList.add("running");
     d.el.classList.remove("winner");
   });
 
   if (trackScroll) trackScroll.scrollLeft = 0;
-
   setStatus(`🚀 Cuộc đua bắt đầu ở ${gameData.fpsMode} FPS!`);
   animationId = requestAnimationFrame(raceLoop);
 }
 
 function startRace() {
   if (raceRunning) return;
-
   gameData.playerName = (playerNameInput?.value || "").trim() || "Người chơi";
-  if (playerNameDisplay) playerNameDisplay.textContent = gameData.playerName || "Người chơi";
   createTrack();
 
   if (startRaceBtn) startRaceBtn.disabled = true;
@@ -1057,35 +1155,29 @@ function resetRace() {
   raceRunning = false;
   ranking = [];
   createTrack();
-
   if (trackScroll) trackScroll.scrollLeft = 0;
-
   setStatus("Đã reset đường đua.");
   if (startRaceBtn) startRaceBtn.disabled = false;
 }
 
 function claimSpinReward(reward) {
   let rewardMessage = "";
-
   if (reward.type === "coins") {
     gameData.coins += reward.value;
     gameData.profit += reward.value;
     rewardMessage = `🎡 Bạn nhận ${reward.value} xu từ vòng quay.`;
     addHistory("🎡 Vòng quay", `Nhận ${reward.value} xu`);
-    showSpinRewardPopup("💰", "Bạn đã trúng!", `${reward.value} xu`);
   } else {
     const skin = getSkinById(reward.value);
     if (!gameData.ownedSkins.includes(skin.id)) {
       gameData.ownedSkins.push(skin.id);
       rewardMessage = `🎡 Bạn quay trúng skin ${skin.name}!`;
       addHistory("🎡 Vòng quay", `Nhận skin ${skin.name}`);
-      showSpinRewardPopup(skin.icon, "Bạn đã trúng vật phẩm!", `${skin.name}`);
     } else {
       gameData.coins += 80;
       gameData.profit += 80;
       rewardMessage = `🎡 Trùng skin ${skin.name}, đổi thành 80 xu.`;
       addHistory("🎡 Vòng quay", `Trùng skin ${skin.name}, đổi thành 80 xu`);
-      showSpinRewardPopup("🔁", "Trùng vật phẩm", `${skin.name} → đổi 80 xu`);
     }
   }
 
@@ -1101,13 +1193,11 @@ function claimSpinReward(reward) {
   renderInventory();
   renderAchievements();
   saveGame();
-
   setStatus(`${rewardMessage} + Quà thêm ${bonusGift} xu.`);
 }
 
 function spinWheel() {
   if (raceRunning || spinCooldown || !spinOnceBtn || !wheelCore) return;
-
   spinCooldown = true;
   spinOnceBtn.disabled = true;
 
@@ -1134,10 +1224,6 @@ function saveSettings() {
   if (settingsFpsSelect) gameData.fpsMode = settingsFpsSelect.value;
   if (settingsSpeedSelect) gameData.speedMode = settingsSpeedSelect.value;
   if (bgThemeSelect) gameData.bgTheme = bgThemeSelect.value;
-
-  if (fpsModeSelect) fpsModeSelect.value = gameData.fpsMode;
-  if (speedModeSelect) speedModeSelect.value = gameData.speedMode;
-
   applyTheme(gameData.bgTheme);
   saveGame();
   setStatus("⚙️ Đã lưu cài đặt game.");
@@ -1162,10 +1248,31 @@ function syncControlValuesToSettings() {
   if (bgThemeSelect) bgThemeSelect.value = gameData.bgTheme || "theme-default";
 }
 
+function bindAvatarInputs() {
+  const openPicker = () => avatarInput?.click();
+  openAvatarPickerBtn?.addEventListener("click", openPicker);
+  openAvatarPickerBtnProfile?.addEventListener("click", openPicker);
+  playerAvatarHome?.addEventListener("click", openPicker);
+
+  avatarInput?.addEventListener("change", (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      gameData.avatar = String(reader.result);
+      applyAvatar();
+      renderAvatarFrameShop();
+      saveGame();
+      setStatus("📸 Đã đổi avatar.");
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 function init() {
-  ensureSpinRewardPopup();
   loadGame();
   ensureDailySystems();
+  ensureWeeklyReset();
 
   if (playerNameInput) {
     playerNameInput.value = gameData.playerName && gameData.playerName !== "Người chơi"
@@ -1180,7 +1287,9 @@ function init() {
   renderInventory();
   renderAchievements();
   renderSeasonBoard();
+  renderAvatarFrameShop();
   bindModalButtons();
+  bindAvatarInputs();
 
   if (duckCountSelect) duckCountSelect.value = "4";
   populateDuckOptions();
@@ -1204,6 +1313,7 @@ function init() {
 
   openShopBtn?.addEventListener("click", () => {
     renderShop();
+    renderAvatarFrameShop();
     openModal("shopModal");
   });
 
@@ -1221,6 +1331,7 @@ function init() {
 
   openSeasonBtn?.addEventListener("click", () => {
     renderSeasonBoard();
+    if (seasonResetNote) seasonResetNote.textContent = formatResetCountdown();
     openModal("seasonModal");
   });
 
@@ -1229,9 +1340,13 @@ function init() {
     openModal("settingsModal");
   });
 
+  openAvatarFrameShopBtn?.addEventListener("click", () => {
+    renderAvatarFrameShop();
+    openModal("avatarFrameModal");
+  });
+
   playerNameInput?.addEventListener("input", () => {
     gameData.playerName = playerNameInput.value;
-    if (playerNameDisplay) playerNameDisplay.textContent = gameData.playerName || "Người chơi";
     saveGame();
   });
 
@@ -1273,6 +1388,7 @@ function init() {
   spinOnceBtn?.addEventListener("click", spinWheel);
   saveSettingsBtn?.addEventListener("click", saveSettings);
   resetDataBtn?.addEventListener("click", resetAllData);
+  resetRankBtn?.addEventListener("click", resetRankOnly);
 
   previewBuyBtn?.addEventListener("click", () => {
     if (selectedPreviewSkinId) {
@@ -1282,9 +1398,8 @@ function init() {
   });
 
   window.addEventListener("resize", () => {
-    const finishPos = getFinishPos();
-    const visibleFinish = getVisibleFinishPos();
-
+    const finishPos = FIXED_RACE_DISTANCE;
+    const visibleFinish = trackWrap ? trackWrap.scrollWidth - 130 : 1000;
     ducks.forEach(duck => {
       const visiblePos = Math.min((duck.pos / finishPos) * visibleFinish, visibleFinish);
       duck.el.style.left = `${visiblePos}px`;
@@ -1292,6 +1407,10 @@ function init() {
   });
 
   setStatus("Sẵn sàng chơi.");
+  setInterval(() => {
+    ensureWeeklyReset();
+    if (seasonResetNote) seasonResetNote.textContent = formatResetCountdown();
+  }, 60000);
 }
 
 init();
